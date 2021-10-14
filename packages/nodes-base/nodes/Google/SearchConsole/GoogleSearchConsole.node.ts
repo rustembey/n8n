@@ -145,7 +145,7 @@ export class GoogleSearchConsole implements INodeType {
 		if (resource === 'searchAnalytics') {
 			if (operation === 'post') {
 				// get email input
-				const url = this.getNodeParameter('url', 0) as string;
+				const url = this.getNodeParameter('siteUrl', 0) as string;
 				// get additional fields input
 				// const additionalFields = this.getNodeParameter('additionalFields', 0) as IDataObject;
 				const additionalFields = {
@@ -157,7 +157,7 @@ export class GoogleSearchConsole implements INodeType {
 
 				Object.assign(data, additionalFields);
 
-				responseData = await googleApiRequest.call(this, 'POST', `/sites/${url}/searchAnalytics/query`, data);
+				responseData = await googleApiRequest.call(this, 'POST', `/sites/https%3A%2F%2Fwww.n8n.io%2F/searchAnalytics/query`, data);
 			}
 		}
 
