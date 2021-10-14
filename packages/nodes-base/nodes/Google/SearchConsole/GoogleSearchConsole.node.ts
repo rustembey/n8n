@@ -27,7 +27,7 @@ export class GoogleSearchConsole implements INodeType {
 		group: ['input', 'output'],
 		version: 1,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
-		description: 'Read, update and write data to Google Sheets',
+		description: 'Get stuff from google search console',
 		defaults: {
 			name: 'Google Search Console',
 			color: '#0aa55c',
@@ -141,8 +141,6 @@ export class GoogleSearchConsole implements INodeType {
 		let responseData;
 		const resource = this.getNodeParameter('resource', 0) as string;
 		const operation = this.getNodeParameter('operation', 0) as string;
-		//Get credentials the user provided for this node
-		const credentials = await this.getCredentials('googleSearchConsole') as IDataObject;
 
 		if (resource === 'searchAnalytics') {
 			if (operation === 'post') {
