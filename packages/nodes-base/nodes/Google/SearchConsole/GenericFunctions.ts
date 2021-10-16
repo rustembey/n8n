@@ -27,7 +27,7 @@ export async function googleApiRequest(this: IExecuteFunctions | IExecuteSingleF
 		method,
 		body,
 		qs,
-		uri: uri || `https://www.googleapis.com/webmasters/v3/sites/https%3A%2F%2Fwww.n8n.io%2F/searchAnalytics/query`,
+		uri: uri || `https://www.googleapis.com/webmasters/v3/sites/https%3A%2F%2Fn8n.io%2Fblog%2F/searchAnalytics/query?key=AIzaSyBqsxEM7qZ59IXj3uf9GhxC0nvQ8F4LZ_E`,
 		json: true,
 	};
 	try {

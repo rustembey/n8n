@@ -23,7 +23,7 @@ export class GoogleSearchConsole implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Google Search Console ',
 		name: 'googleSearchConsole',
-		icon: 'file:googleSheets.svg',
+		icon: 'file:googleSearchConsole.svg',
 		group: ['input', 'output'],
 		version: 1,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
@@ -149,15 +149,15 @@ export class GoogleSearchConsole implements INodeType {
 				// get additional fields input
 				// const additionalFields = this.getNodeParameter('additionalFields', 0) as IDataObject;
 				const additionalFields = {
-					startDate: '2021-04-01',
-					endDate: '2021-04-10',
+					startDate: '2021-10-01',
+					endDate: '2021-10-10',
 					dimensions: ['country','device'],
 				}
 				const data: IDataObject = {};
 
 				Object.assign(data, additionalFields);
 
-				responseData = await googleApiRequest.call(this, 'POST', `/sites/https%3A%2F%2Fwww.n8n.io%2F/searchAnalytics/query`, data);
+				responseData = await googleApiRequest.call(this, 'POST', `/sites/https%3A%2F%2Fn8n.io%2Fblog%2F/searchAnalytics/query?key=AIzaSyBqsxEM7qZ59IXj3uf9GhxC0nvQ8F4LZ_E`, data);
 			}
 		}
 
