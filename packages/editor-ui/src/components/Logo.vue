@@ -1,6 +1,6 @@
 <template>
 	<img
-		:src="basePath + 'n8n-logo.svg'"
+		:src="basePath + logoIcon"
 		:class="$style.img"
 		alt="n8n.io"
 	/>
@@ -13,6 +13,9 @@ export default Vue.extend({
 	computed: {
 		basePath(): string {
 			return this.$store.getters.getBaseUrl;
+		},
+		logoIcon(): string {
+			return 'google-logo.svg';
 		},
 	},
 });
