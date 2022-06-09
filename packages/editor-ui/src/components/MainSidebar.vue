@@ -9,9 +9,10 @@
 			<n8n-menu default-active="workflow" @select="handleSelect" :collapse="isCollapsed">
 
 				<n8n-menu-item index="logo" class="logo-item">
-					<a :href="$locale.baseText('_brand.url')" target="_blank">
-						<img :src="basePath + 'n8n-icon-small.png'" class="icon" :alt="$locale.baseText('_brand.domain')"/>
-						<span class="logo-text" slot="title">{{ $locale.baseText('_brand.domain') }}</span>
+					<a :href="brandInfo.url" target="_blank" class="logo-link">
+						<div class="logo-container"></div>
+						<!-- <img :src="basePath + 'n8n-icon-small.png'" class="icon" :alt="brandInfo.name"/> -->
+						<span class="logo-text" slot="title">{{ brandInfo.name }}</span>
 					</a>
 				</n8n-menu-item>
 
@@ -247,6 +248,7 @@ export default mixins(
 			...mapGetters('ui', {
 				isCollapsed: 'sidebarMenuCollapsed',
 				currentTheme: 'editorTheme',
+				brandInfo: 'getBrandInfo',
 			}),
 			...mapGetters('versions', [
 				'hasVersionUpdates',
@@ -704,6 +706,11 @@ export default mixins(
 				vertical-align: middle;
 			}
 
+			.logo-link { display: -webkit-box; }
+
+			.logo-container {
+				width: 40px;
+			}
 
 			.icon {
 				position: relative;

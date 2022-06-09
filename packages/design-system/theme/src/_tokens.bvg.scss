@@ -316,11 +316,14 @@ body.theme-bvg {
 
 	#side-menu {
 		.el-menu-item.logo-item {
-			background-image: url('https://www.bvg.de/dam/jcr:ea2155cb-caeb-4e33-9ca2-3a6d85f4eedc/BVG_Herz_Gelb_RGB.svg');
-			background-size: 65%;
-			background-color: var(--color-background-xlight) !important;
-			background-repeat: no-repeat;
-			background-position: 14px 11px;
+
+			.logo-container {
+				background-image: url('https://www.bvg.de/dam/jcr:ea2155cb-caeb-4e33-9ca2-3a6d85f4eedc/BVG_Herz_Gelb_RGB.svg');
+				background-size: 100%;
+				background-repeat: no-repeat;
+				background-position: center center;
+			}
+
 			.logo-text {
 				color: var(--color-primary);
 			}

@@ -124,6 +124,25 @@ const module: Module<IUiState, IRootState> = {
 		sidebarMenuCollapsed: (state: IUiState): boolean => state.sidebarMenuCollapsed,
 		editorTheme: (state: IUiState): string => state.theme,
 		darkThemeEnabled: (state: IUiState): boolean => state.darkThemeEnabled,
+		getBrandInfo: (state: IUiState): {} => {
+			const brands = new Map();
+			brands.set('n8n', {
+				name: 'n8n',
+				domain: 'n8n.embed',
+				url: 'https://staging.n8n-website-v2.pages.dev',
+			});
+			brands.set('google', {
+				name: 'Google',
+				domain: 'google.n8n',
+				url: 'http://www.google.com',
+			});
+			brands.set('bvg', {
+				name: 'BVG',
+				domain: 'bvg.n8n',
+				url: 'https://www.bvg.de/en',
+			});
+			return brands.get(state.theme) || brands.get('n8n');
+		},
 	},
 	mutations: {
 		setMode: (state: IUiState, params: {name: string, mode: string}) => {
