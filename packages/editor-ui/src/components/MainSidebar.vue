@@ -10,8 +10,8 @@
 
 				<n8n-menu-item index="logo" class="logo-item">
 					<a href="https://n8n.io" target="_blank">
-						<img :src="basePath + getIconPath" class="icon" alt="n8n.io"/>
-						<span class="logo-text" slot="title">n8n.io</span>
+						<img :src="basePath + getIconPath" class="icon" :alt="getLogoText"/>
+						<span class="logo-text" slot="title">{{ getLogoText }}</span>
 					</a>
 				</n8n-menu-item>
 
@@ -261,6 +261,9 @@ export default mixins(
 			]),
 			getIconPath() {
 				return this.currentTheme === 'google' ? 'google-icon-small.png' : 'n8n-icon-small.png';
+			},
+			getLogoText() {
+				return this.currentTheme === 'google' ? 'Google' : 'n8n.io';
 			},
 			canUserAccessSettings(): boolean {
 				return this.canUserAccessRouteByName(VIEWS.PERSONAL_SETTINGS) || this.canUserAccessRouteByName(VIEWS.USERS_SETTINGS);
@@ -710,10 +713,6 @@ export default mixins(
 			}
 		}
 	}
-}
-
-body.theme-google #side-menu .el-menu-item.logo-item .icon {
-	left: 0;
 }
 
 .about-icon {
