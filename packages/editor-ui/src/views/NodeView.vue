@@ -76,6 +76,9 @@
 			@closeNodeCreator="closeNodeCreator"
 		/>
 		<div :class="{ 'zoom-menu': true, 'regular-zoom-menu': !isDemo, 'demo-zoom-menu': isDemo, expanded: !sidebarMenuCollapsed }">
+			<button @click="toggleGoogleTheme" class="button-white" title="Toggle Google theme">
+				<font-awesome-icon :icon="[ 'fab', 'google' ]"/>
+			</button>
 			<button @click="toggleTheme" class="button-white" :title="$locale.baseText('nodeView.switchTheme')">
 				<font-awesome-icon :icon="editorTheme === 'light' ? 'moon': 'sun'"/>
 			</button>
@@ -403,6 +406,9 @@ export default mixins(
 		methods: {
 			toggleTheme () {
 				this.$store.commit('ui/toggleTheme');
+			},
+			toggleGoogleTheme() {
+				this.$store.commit('ui/toggleGoogleTheme');
 			},
 			clearExecutionData () {
 				this.$store.commit('setWorkflowExecutionData', null);

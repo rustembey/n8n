@@ -99,6 +99,9 @@ import {
 import {
 	faStickyNote,
 } from '@fortawesome/free-regular-svg-icons';
+import {
+	faGoogle,
+} from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 function addIcon(icon: any) { // tslint:disable-line:no-any
@@ -150,6 +153,7 @@ addIcon(faFileImport);
 addIcon(faFilePdf);
 addIcon(faFolderOpen);
 addIcon(faGift);
+addIcon(faGoogle);
 addIcon(faGraduationCap);
 addIcon(faHdd);
 addIcon(faHome);

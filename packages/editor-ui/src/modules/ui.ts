@@ -166,6 +166,16 @@ const module: Module<IUiState, IRootState> = {
 			});
 			document.body.classList.add(`theme-${state.theme}`);
 		},
+		toggleGoogleTheme: (state: IUiState) => {
+			state.theme = 'google';
+			window.localStorage.setItem(LOCAL_STORAGE_THEME_KEY, state.theme);
+			document.body.classList.forEach((theme) => {
+				if (theme.startsWith('theme-')) {
+					document.body.classList.remove(theme);
+				}
+			});
+			document.body.classList.add(`theme-${state.theme}`);
+		},
 	},
 	actions: {
 		openModal: async (context: ActionContext<IUiState, IRootState>, modalKey: string) => {
