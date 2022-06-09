@@ -82,7 +82,7 @@
 			<button @click="toggleBVGTheme" class="button-white button-bvg" title="Toggle BVG theme">
 				BVG
 			</button>
-			<button @click="toggleTheme" class="button-white" :title="$locale.baseText('nodeView.switchTheme')">
+			<button v-if="darkThemeEnabled" @click="toggleTheme" class="button-white" :title="$locale.baseText('nodeView.switchTheme')">
 				<font-awesome-icon :icon="editorTheme === 'light' ? 'moon': 'sun'"/>
 			</button>
 			<button @click="zoomToFit" class="button-white" :title="$locale.baseText('nodeView.zoomToFit')">
@@ -313,6 +313,7 @@ export default mixins(
 			...mapGetters('ui', [
 				'sidebarMenuCollapsed',
 				'editorTheme',
+				'darkThemeEnabled',
 			]),
 			defaultLocale (): string {
 				return this.$store.getters.defaultLocale;

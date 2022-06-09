@@ -1,3 +1,7 @@
+export const BRAND_NAME = 'n8n embed';
+export const BRAND_DOMAIN = 'n8n.embed';
+export const BRAND_URL = 'https://staging.n8n-website-v2.pages.dev';
+
 export const MAX_DISPLAY_DATA_SIZE = 204800;
 export const MAX_DISPLAY_ITEMS_AUTO_ALL = 250;
 export const NODE_NAME_PREFIX = 'node-';
