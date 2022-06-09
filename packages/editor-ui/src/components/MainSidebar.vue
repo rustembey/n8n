@@ -702,6 +702,7 @@ export default mixins(
 			background-color: $--color-primary !important;
 			height: $--header-height;
 			line-height: $--header-height;
+			padding-left: 15px !important;
 			* {
 				vertical-align: middle;
 			}
