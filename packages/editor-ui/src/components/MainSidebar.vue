@@ -10,8 +10,8 @@
 
 				<n8n-menu-item index="logo" class="logo-item">
 					<a href="https://n8n.io" target="_blank">
-						<img :src="basePath + getIconPath" class="icon" :alt="getLogoText"/>
-						<span class="logo-text" slot="title">{{ getLogoText }}</span>
+						<img :src="basePath + 'n8n-icon-small.png'" class="icon" alt="n8n.io"/>
+						<span class="logo-text" slot="title">BVG</span>
 					</a>
 				</n8n-menu-item>
 

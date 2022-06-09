@@ -840,7 +840,7 @@ export interface IModalState {
 	activeId?: string | null;
 }
 
-export type EditorTheme = 'light' | 'dark' | 'google';
+export type EditorTheme = 'light' | 'dark' | 'google' | 'bvg' | 'new-n8n';
 
 export interface IUiState {
 	sidebarMenuCollapsed: boolean;

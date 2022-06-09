@@ -79,6 +79,9 @@
 			<button @click="toggleGoogleTheme" class="button-white" title="Toggle Google theme">
 				<font-awesome-icon :icon="[ 'fab', 'google' ]"/>
 			</button>
+			<button @click="toggleBVGTheme" class="button-white button-bvg" title="Toggle BVG theme">
+				BVG
+			</button>
 			<button @click="toggleTheme" class="button-white" :title="$locale.baseText('nodeView.switchTheme')">
 				<font-awesome-icon :icon="editorTheme === 'light' ? 'moon': 'sun'"/>
 			</button>
@@ -409,6 +412,9 @@ export default mixins(
 			},
 			toggleGoogleTheme() {
 				this.$store.commit('ui/toggleGoogleTheme');
+			},
+			toggleBVGTheme() {
+				this.$store.commit('ui/toggleBVGTheme');
 			},
 			clearExecutionData () {
 				this.$store.commit('setWorkflowExecutionData', null);
@@ -3096,6 +3102,10 @@ export default mixins(
 	&:hover {
 		transform: scale(1.1);
 	}
+}
+
+.button-bvg {
+	width: 60px !important;
 }
 
 .connection-actions {
