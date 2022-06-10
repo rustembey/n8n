@@ -321,8 +321,13 @@
 	#side-menu {
 		.el-menu {
 			--menu-item-hover-fill: #f1f3f4;
+			color: var(--color-text-base);
 
 			.el-submenu__icon-arrow {
+				color: var(--color-text-base);
+			}
+
+			.el-submenu__title {
 				color: var(--color-text-base);
 			}
 		}

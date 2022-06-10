@@ -408,13 +408,10 @@
 		.el-menu-item {
 			&.logo-item {
 				.logo-container {
-					background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQueoDyZxaUgi5DRX0Vcyz1rqGqJ63gSnt_6mocbSAb7uX7bRsoui1xEhwg-WsgntxFxUw&usqp=CAU');
+					background-image: url('https://internal.users.n8n.cloud/n8n-icon-small.png');
 					background-repeat: no-repeat;
 					background-position: center;
 					background-size: 80%;
-				}
-				.logo-text {
-					color: var(--color-primary);
 				}
 			}
 		}
