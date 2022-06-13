@@ -176,7 +176,7 @@
 
 </template>
 
-<script lang="ts">
+<script>
 
 import { MessageBoxInputData } from 'element-ui/types/message-box';
 
@@ -267,10 +267,10 @@ export default mixins(
 			getLogoText() {
 				return this.currentTheme === 'google' ? 'Google' : 'n8n.io';
 			},
-			canUserAccessSettings(): boolean {
+			canUserAccessSettings() {
 				return this.canUserAccessRouteByName(VIEWS.PERSONAL_SETTINGS) || this.canUserAccessRouteByName(VIEWS.USERS_SETTINGS);
 			},
-			helpMenuItems (): object[] {
+			helpMenuItems () {
 				return [
 					{
 						id: 'docs',
@@ -304,10 +304,10 @@ export default mixins(
 					},
 				];
 			},
-			exeuctionId (): string | undefined {
+			exeuctionId () {
 				return this.$route.params.id;
 			},
-			executionFinished (): boolean {
+			executionFinished () {
 				if (!this.isExecutionPage) {
 					// We are not on an exeuction page so return false
 					return false;
@@ -326,42 +326,42 @@ export default mixins(
 
 				return false;
 			},
-			executionWaitingForWebhook (): boolean {
+			executionWaitingForWebhook () {
 				return this.$store.getters.executionWaitingForWebhook;
 			},
-			isExecutionPage (): boolean {
+			isExecutionPage () {
 				return this.$route.name === VIEWS.EXECUTION;
 			},
-			isWorkflowActive (): boolean {
+			isWorkflowActive () {
 				return this.$store.getters.isActive;
 			},
-			currentWorkflow (): string {
+			currentWorkflow () {
 				return this.$route.params.name;
 			},
-			workflowExecution (): IExecutionResponse | null {
+			workflowExecution () {
 				return this.$store.getters.getWorkflowExecution;
 			},
-			workflowName (): string {
+			workflowName () {
 				return this.$store.getters.workflowName;
 			},
-			workflowRunning (): boolean {
+			workflowRunning () {
 				return this.$store.getters.isActionActive('workflowRunning');
 			},
-			sidebarMenuTopItems(): IMenuItem[] {
-				return this.$store.getters.sidebarMenuItems.filter((item: IMenuItem) => item.position === 'top');
+			sidebarMenuTopItems() {
+				return this.$store.getters.sidebarMenuItems.filter((item) => item.position === 'top');
 			},
-			sidebarMenuBottomItems(): IMenuItem[] {
-				return this.$store.getters.sidebarMenuItems.filter((item: IMenuItem) => item.position === 'bottom');
+			sidebarMenuBottomItems() {
+				return this.$store.getters.sidebarMenuItems.filter((item) => item.position === 'bottom');
 			},
-			onWorkflowPage(): boolean {
+			onWorkflowPage() {
 				return this.$route.meta && this.$route.meta.nodeView;
 			},
 		},
 		methods: {
-			trackHelpItemClick (itemType: string) {
+			trackHelpItemClick (itemType) {
 				this.$telemetry.track('User clicked help resource', { type: itemType, workflow_id: this.$store.getters.workflowId });
 			},
-			async onUserActionToggle(action: string) {
+			async onUserActionToggle(action) {
 				if (action === 'logout') {
 					this.onLogout();
 				}
@@ -413,7 +413,7 @@ export default mixins(
 				}
 				this.stopExecutionInProgress = false;
 			},
-			async openWorkflow (workflowId: string) {
+			async openWorkflow (workflowId) {
 				// Change to other workflow
 				this.$router.push({
 					name: VIEWS.WORKFLOW,
@@ -425,12 +425,12 @@ export default mixins(
 			async handleFileImport () {
 				const reader = new FileReader();
 
-				reader.onload = (event: ProgressEvent) => {
-					const data = (event.target as FileReader).result;
+				reader.onload = (event) => {
+					const data = (event.target).result;
 
-					let worflowData: IWorkflowDataUpdate;
+					let worflowData;
 					try {
-						worflowData = JSON.parse(data as string);
+						worflowData = JSON.parse(data);
 					} catch (error) {
 						this.$showMessage({
 							title: this.$locale.baseText('mainSidebar.showMessage.handleFileImport.title'),
@@ -444,16 +444,16 @@ export default mixins(
 					this.$root.$emit('importWorkflowData', { data: worflowData });
 				};
 
-				const input = this.$refs.importFile as HTMLInputElement;
+				const input = this.$refs.importFile;
 				if (input !== null && input.files !== null && input.files.length !== 0) {
-					reader.readAsText(input!.files[0]!);
+					reader.readAsText(input.files[0]);
 				}
 			},
-			async handleSelect (key: string, keyPath: string) {
+			async handleSelect (key, keyPath) {
 				if (key === 'workflow-open') {
 					this.$store.dispatch('ui/openModal', WORKFLOW_OPEN_MODAL_KEY);
 				} else if (key === 'workflow-import-file') {
-					(this.$refs.importFile as HTMLInputElement).click();
+					(this.$refs.importFile).click();
 				} else if (key === 'workflow-import-url') {
 					try {
 						const promptResponse = await this.$prompt(
@@ -465,7 +465,7 @@ export default mixins(
 								inputErrorMessage: this.$locale.baseText('mainSidebar.prompt.invalidUrl'),
 								inputPattern: /^http[s]?:\/\/.*\.json$/i,
 							},
-						) as MessageBoxInputData;
+						);
 
 						this.$root.$emit('importWorkflowUrl', { url: promptResponse.value });
 					} catch (e) {}
@@ -595,12 +595,12 @@ export default mixins(
 					this.$store.dispatch('ui/openModal', CREDENTIAL_SELECT_MODAL_KEY);
 				} else if (key === 'execution-open-workflow') {
 					if (this.workflowExecution !== null) {
-						this.openWorkflow(this.workflowExecution.workflowId as string);
+						this.openWorkflow(this.workflowExecution.workflowId);
 					}
 				} else if (key === 'executions') {
 					this.$store.dispatch('ui/openModal', EXECUTIONS_MODAL_KEY);
 				} else if (key === 'settings') {
-					if ((this.currentUser as IUser).isDefaultUser) {
+					if ((this.currentUser).isDefaultUser) {
 						this.$router.push('/settings/users');
 					}
 					else {
