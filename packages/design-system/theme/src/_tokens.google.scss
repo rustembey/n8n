@@ -332,6 +332,12 @@
 			}
 		}
 
+		.el-submenu {
+			&:hover {
+				color: var(--color-primary) !important;
+			}
+		}
+
 		.el-menu-item {
 			--menu-item-hover-fill: #f1f3f4;
 			color: var(--color-text-base);

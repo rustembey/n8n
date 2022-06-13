@@ -177,16 +177,6 @@
 </template>
 
 <script>
-
-import { MessageBoxInputData } from 'element-ui/types/message-box';
-
-import {
-	IExecutionResponse,
-	IWorkflowDataUpdate,
-	IMenuItem,
-	IUser,
-} from '../Interface';
-
 import ExecutionsList from '@/components/ExecutionsList.vue';
 import GiftNotificationIcon from './GiftNotificationIcon.vue';
 import WorkflowSettings from '@/components/WorkflowSettings.vue';
