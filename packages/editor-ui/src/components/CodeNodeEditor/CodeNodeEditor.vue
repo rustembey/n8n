@@ -155,7 +155,7 @@ export default mixins(linterExtension, completerExtension, workflowHelpers).exte
 							{
 								role: 'system',
 								content:
-									"The input follows following schema. You can reference the properties if it's required for the generation. You can reference the data via `$input.all()` and the individual item $input.all()[0].json." +
+									"The input follows following schema. You can reference the properties if it's required for the generation. You can reference the data via `$input.all()` and the individual item $input.all()[0].json. You always need to return the result." +
 									JSON.stringify(window.__schema.value),
 							},
 							{
@@ -257,7 +257,7 @@ export default mixins(linterExtension, completerExtension, workflowHelpers).exte
 						{
 							role: 'system',
 							content:
-								"The input follows following schema. You can reference the properties if it's required for the generation. You can reference the data via `$input.all()` and the individual item $input.all()[0].json." +
+								"The input follows following schema. You can reference the properties if it's required for the generation. You can reference the data via `$input.all()` and the individual item $input.all()[0].json. You always need to return the result." +
 								JSON.stringify(window.__schema.value),
 						},
 						{
