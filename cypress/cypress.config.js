@@ -4,7 +4,7 @@ const { defineConfig } = require('cypress');
 const BASE_URL = 'http://localhost:5678';
 
 module.exports = defineConfig({
-	projectId: "5hbsdn",
+	projectId: '5hbsdn',
 	retries: {
 		openMode: 0,
 		runMode: 2,
@@ -14,6 +14,8 @@ module.exports = defineConfig({
 	numTestsKeptInMemory: 0,
 	experimentalMemoryManagement: true,
 	e2e: {
+		specPattern: 'e2e/**/*.ts',
+		supportFile: 'support/e2e.ts',
 		baseUrl: BASE_URL,
 		video: true,
 		screenshotOnRunFailure: true,
@@ -29,10 +31,10 @@ module.exports = defineConfig({
 							method: 'POST',
 							body: JSON.stringify(payload),
 							headers: { 'Content-Type': 'application/json' },
-						})
+						});
 					} catch (error) {
-						console.error("setup-owner failed with: ", error)
-						return null
+						console.error('setup-owner failed with: ', error);
+						return null;
 					}
 				},
 				'enable-feature': (feature) =>
@@ -41,4 +43,3 @@ module.exports = defineConfig({
 		},
 	},
 });
-

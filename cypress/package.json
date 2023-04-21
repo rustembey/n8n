@@ -1,0 +1,20 @@
+{
+  "name": "n8n-cypress",
+  "private": true,
+  "scripts": {
+    "cypress:install": "cypress install",
+    "cypress:open": "CYPRESS_BASE_URL=http://localhost:8080 cypress open",
+    "test:e2e:ui": "cross-env E2E_TESTS=true start-server-and-test start http://localhost:5678/favicon.ico 'cypress open'",
+    "test:e2e:dev": "cross-env E2E_TESTS=true CYPRESS_BASE_URL=http://localhost:8080 start-server-and-test dev http://localhost:8080/favicon.ico 'cypress open'",
+    "test:e2e:smoke": "cross-env E2E_TESTS=true start-server-and-test start http://localhost:5678/favicon.ico 'cypress run --headless --spec \"e2e/0-smoke.cy.ts\"'",
+    "test:e2e:all": "cross-env E2E_TESTS=true start-server-and-test start http://localhost:5678/favicon.ico 'cypress run --headless'",
+    "start": "cd ..; npm start"
+  },
+  "devDependencies": {
+    "@ngneat/falso": "^6.1.0",
+    "cross-env": "^7.0.3",
+    "cypress": "^12.8.1",
+    "cypress-real-events": "^1.7.6",
+    "start-server-and-test": "^1.14.0"
+  }
+}
