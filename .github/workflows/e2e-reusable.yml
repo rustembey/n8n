@@ -96,7 +96,6 @@ jobs:
           runTests: false
           install: false
           build: pnpm build
-          config-file: cypress/cypress.config.js
 
       - name: Cypress install
         run: pnpm cypress:install
@@ -143,7 +142,7 @@ jobs:
           # in the same parent workflow
           ci-build-id: ${{ needs.prepare.outputs.uuid }}
           spec: '/__w/n8n/n8n/cypress/${{ inputs.spec }}'
-          config-file: /__w/n8n/n8n/cypress.config.js
+          config-file: /__w/n8n/n8n/cypress/cypress.config.js
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
