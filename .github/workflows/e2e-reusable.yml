@@ -98,7 +98,7 @@ jobs:
           build: pnpm build
 
       - name: Cypress install
-        run: pnpm cypress:install
+        run: cd cypress; pnpm cypress:install
 
   testing:
     runs-on: ubuntu-latest
