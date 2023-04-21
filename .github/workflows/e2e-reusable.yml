@@ -132,6 +132,7 @@ jobs:
       - name: Cypress run
         uses: cypress-io/github-action@v5
         with:
+          working-directory: cypress
           install: false
           start: pnpm start
           wait-on: 'http://localhost:5678'
