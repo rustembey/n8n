@@ -8,7 +8,7 @@
     "test:e2e:dev": "cross-env E2E_TESTS=true CYPRESS_BASE_URL=http://localhost:8080 start-server-and-test dev http://localhost:8080/favicon.ico 'cypress open'",
     "test:e2e:smoke": "cross-env E2E_TESTS=true start-server-and-test start http://localhost:5678/favicon.ico 'cypress run --headless --spec \"e2e/0-smoke.cy.ts\"'",
     "test:e2e:all": "cross-env E2E_TESTS=true start-server-and-test start http://localhost:5678/favicon.ico 'cypress run --headless'",
-    "start": "cd ..; npm start"
+    "start": "cd ..; pnpm start"
   },
   "devDependencies": {
     "@ngneat/falso": "^6.1.0",
