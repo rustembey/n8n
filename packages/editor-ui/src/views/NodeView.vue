@@ -681,7 +681,7 @@ export default mixins(
 			} else if (this.$route.params.name && this.$route.params.name !== 'new') {
 				currentId = this.$route.params.name;
 			}
-			const saved = await this.saveCurrentWorkflow({
+			let saved = await this.saveCurrentWorkflow({
 				id: currentId,
 				name: this.workflowName,
 				tags: this.workflowsStore.workflow.tags,
