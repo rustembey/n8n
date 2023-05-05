@@ -187,12 +187,13 @@ const WorkflowsView = mixins(showMessage, debounceHelper).extend({
 			});
 		},
 		async initialize() {
-			await Promise.all([
+			const [users, workflows, activeWorkflows] = await Promise.all([
 				this.usersStore.fetchUsers(),
 				this.workflowsStore.fetchAllWorkflows(),
 				this.workflowsStore.fetchActiveWorkflows(),
 			]);
 
+			this.workflowsStore.setWorkflows(workflows)
 			this.credentialsStore.fetchAllCredentials();
 		},
 		onClickTag(tagId: string, event: PointerEvent) {

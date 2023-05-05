@@ -696,6 +696,7 @@ export default mixins(externalHooks, genericHelpers, executionHelpers, showMessa
 				});
 
 				Vue.set(this, 'workflows', workflows);
+				this.workflowsStore.setWorkflows(workflows);
 			} catch (error) {
 				this.$showError(
 					error,

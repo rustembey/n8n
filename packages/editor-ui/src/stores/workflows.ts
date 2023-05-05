@@ -386,7 +386,6 @@ export const useWorkflowsStore = defineStore(STORES.WORKFLOWS, {
 		async fetchAllWorkflows(): Promise<IWorkflowDb[]> {
 			const rootStore = useRootStore();
 			const workflows = await getWorkflows(rootStore.getRestApiContext);
-			this.setWorkflows(workflows);
 			return workflows;
 		},
 
