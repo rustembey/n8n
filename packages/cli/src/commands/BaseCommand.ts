@@ -2,8 +2,8 @@ import { Command } from '@oclif/command';
 import { ExitError } from '@oclif/errors';
 import { Container } from 'typedi';
 import { LoggerProxy, ErrorReporterProxy as ErrorReporter, sleep } from 'n8n-workflow';
-import type { IUserSettings } from 'n8n-core';
-import { BinaryDataManager, UserSettings } from 'n8n-core';
+import { IUserSettings, BinaryDataManager } from 'n8n-core';
+import { UserSettings } from 'n8n-core';
 import type { AbstractServer } from '@/AbstractServer';
 import { getLogger } from '@/Logger';
 import config from '@/config';
@@ -39,6 +39,8 @@ export abstract class BaseCommand extends Command {
 
 	protected server?: AbstractServer;
 
+	protected binaryDataManager: BinaryDataManager;
+
 	async init(): Promise<void> {
 		await initErrorHandling();
 
@@ -52,6 +54,7 @@ export abstract class BaseCommand extends Command {
 		await this.loadNodesAndCredentials.init();
 		this.nodeTypes = Container.get(NodeTypes);
 		this.nodeTypes.init();
+		this.binaryDataManager = Container.get(BinaryDataManager);
 		const credentialTypes = Container.get(CredentialTypes);
 		CredentialsOverwrites(credentialTypes);
 
@@ -112,7 +115,7 @@ export abstract class BaseCommand extends Command {
 
 	protected async initBinaryManager() {
 		const binaryDataConfig = config.getEnv('binaryDataManager');
-		await BinaryDataManager.init(binaryDataConfig, true);
+		await this.binaryDataManager.init(binaryDataConfig, true);
 	}
 
 	protected async initExternalHooks() {

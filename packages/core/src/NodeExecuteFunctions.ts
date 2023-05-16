@@ -12,6 +12,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable no-param-reassign */
+import { Container } from 'typedi';
 import type {
 	GenericValue,
 	IAdditionalCredentialOptions,
@@ -868,14 +869,14 @@ async function httpRequest(
  * Returns binary file metadata
  */
 export async function getBinaryMetadata(binaryDataId: string): Promise<BinaryMetadata> {
-	return BinaryDataManager.getInstance().getBinaryMetadata(binaryDataId);
+	return Container.get(BinaryDataManager).getBinaryMetadata(binaryDataId);
 }
 
 /**
  * Returns binary file stream for piping
  */
 export function getBinaryStream(binaryDataId: string, chunkSize?: number): Readable {
-	return BinaryDataManager.getInstance().getBinaryStream(binaryDataId, chunkSize);
+	return Container.get(BinaryDataManager).getBinaryStream(binaryDataId, chunkSize);
 }
 
 export function assertBinaryData(
@@ -912,7 +913,7 @@ export async function getBinaryDataBuffer(
 	inputIndex: number,
 ): Promise<Buffer> {
 	const binaryData = inputData.main[inputIndex]![itemIndex]!.binary![propertyName]!;
-	return BinaryDataManager.getInstance().retrieveBinaryData(binaryData);
+	return Container.get(BinaryDataManager).retrieveBinaryData(binaryData);
 }
 
 /**
@@ -928,7 +929,7 @@ export async function setBinaryDataBuffer(
 	binaryData: Buffer | Readable,
 	executionId: string,
 ): Promise<IBinaryData> {
-	return BinaryDataManager.getInstance().storeBinaryData(data, binaryData, executionId);
+	return Container.get(BinaryDataManager).storeBinaryData(data, binaryData, executionId);
 }
 
 export async function copyBinaryFile(
@@ -981,7 +982,7 @@ export async function copyBinaryFile(
 		returnData.fileName = path.parse(filePath).base;
 	}
 
-	return BinaryDataManager.getInstance().copyBinaryFile(returnData, filePath, executionId);
+	return Container.get(BinaryDataManager).copyBinaryFile(returnData, filePath, executionId);
 }
 
 /**
@@ -2350,7 +2351,7 @@ export function getExecuteFunctions(
 						parentWorkflowSettings: workflow.settings,
 					})
 					.then(async (result) =>
-						BinaryDataManager.getInstance().duplicateBinaryData(
+						Container.get(BinaryDataManager).duplicateBinaryData(
 							result,
 							additionalData.executionId!,
 						),

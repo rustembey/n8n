@@ -1,3 +1,4 @@
+import { Container } from 'typedi';
 import { readFileSync, readdirSync, mkdtempSync } from 'fs';
 import path from 'path';
 import { tmpdir } from 'os';
@@ -213,16 +214,10 @@ export function createTemporaryDir(prefix = 'n8n') {
 	return mkdtempSync(path.join(tmpdir(), prefix));
 }
 
-export async function initBinaryDataManager(mode: 'default' | 'filesystem' = 'default') {
-	const temporaryDir = createTemporaryDir();
-	await BinaryDataManager.init({
-		mode,
-		availableModes: mode,
-		localStoragePath: temporaryDir,
-		binaryDataTTL: 1,
-		persistedBinaryDataTTL: 1,
-	});
-	return temporaryDir;
+export async function initBinaryDataManager() {
+	const binaryDataManager = new BinaryDataManager();
+	await binaryDataManager.init({ mode: 'default' });
+	Container.set(BinaryDataManager, binaryDataManager);
 }
 
 const credentialTypes = new CredentialType();

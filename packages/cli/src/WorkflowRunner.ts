@@ -65,9 +65,12 @@ export class WorkflowRunner {
 
 	jobQueue: JobQueue;
 
+	binaryDataManager: BinaryDataManager;
+
 	constructor() {
 		this.push = Container.get(Push);
 		this.activeExecutions = Container.get(ActiveExecutions);
+		this.binaryDataManager = Container.get(BinaryDataManager);
 	}
 
 	/**
@@ -597,7 +600,7 @@ export class WorkflowRunner {
 						(!workflowDidSucceed && saveDataErrorExecution === 'none')
 					) {
 						await Db.collections.Execution.delete(executionId);
-						await BinaryDataManager.getInstance().markDataForDeletionByExecutionId(executionId);
+						await this.binaryDataManager.markDataForDeletionByExecutionId(executionId);
 					}
 					// eslint-disable-next-line id-denylist
 				} catch (err) {

@@ -643,7 +643,7 @@ export async function executeWebhook(
 						if (!didSendResponse) {
 							// Send the webhook response manually
 							res.setHeader('Content-Type', binaryData.mimeType);
-							const binaryDataBuffer = await BinaryDataManager.getInstance().retrieveBinaryData(
+							const binaryDataBuffer = await Container.get(BinaryDataManager).retrieveBinaryData(
 								binaryData,
 							);
 							res.end(binaryDataBuffer);

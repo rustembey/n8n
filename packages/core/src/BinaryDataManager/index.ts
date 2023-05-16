@@ -1,50 +1,29 @@
+import { Service } from 'typedi';
 import { readFile, stat } from 'fs/promises';
 import type { BinaryMetadata, IBinaryData, INodeExecutionData } from 'n8n-workflow';
 import prettyBytes from 'pretty-bytes';
 import type { Readable } from 'stream';
 import { BINARY_ENCODING } from 'n8n-workflow';
-import type { IBinaryDataConfig, IBinaryDataManager } from '../Interfaces';
+import type { BinaryData, IBinaryDataManager } from '../Interfaces';
 import { BinaryDataFileSystem } from './FileSystem';
 import { binaryToBuffer } from './utils';
 
+@Service()
 export class BinaryDataManager {
-	static instance: BinaryDataManager | undefined;
+	private binaryDataMode: BinaryData.Mode = 'default';
 
-	private managers: {
-		[key: string]: IBinaryDataManager;
-	};
+	private availableModes: BinaryData.Config['availableModes'] = [];
 
-	private binaryDataMode: string;
+	private managers: Partial<Record<BinaryData.Mode, IBinaryDataManager>> = {};
 
-	private availableModes: string[];
-
-	constructor(config: IBinaryDataConfig) {
+	async init(config: BinaryData.Config, mainManager = false) {
 		this.binaryDataMode = config.mode;
-		this.availableModes = config.availableModes.split(',');
-		this.managers = {};
-	}
+		this.availableModes = config.availableModes;
 
-	static async init(config: IBinaryDataConfig, mainManager = false): Promise<void> {
-		if (BinaryDataManager.instance) {
-			throw new Error('Binary Data Manager already initialized');
+		if (config.availableModes.includes('filesystem')) {
+			this.managers.filesystem = new BinaryDataFileSystem(config as BinaryData.FileSystemConfig);
+			await this.managers.filesystem.init(mainManager);
 		}
-
-		BinaryDataManager.instance = new BinaryDataManager(config);
-
-		if (BinaryDataManager.instance.availableModes.includes('filesystem')) {
-			BinaryDataManager.instance.managers.filesystem = new BinaryDataFileSystem(config);
-			await BinaryDataManager.instance.managers.filesystem.init(mainManager);
-		}
-
-		return undefined;
-	}
-
-	static getInstance(): BinaryDataManager {
-		if (!BinaryDataManager.instance) {
-			throw new Error('Binary Data Manager not initialized');
-		}
-
-		return BinaryDataManager.instance;
 	}
 
 	async copyBinaryFile(
@@ -114,8 +93,9 @@ export class BinaryDataManager {
 
 	getBinaryStream(identifier: string, chunkSize?: number): Readable {
 		const { mode, id } = this.splitBinaryModeFileId(identifier);
-		if (this.managers[mode]) {
-			return this.managers[mode].getBinaryStream(id, chunkSize);
+		const manager = this.managers[mode];
+		if (manager) {
+			return manager.getBinaryStream(id, chunkSize);
 		}
 
 		throw new Error('Storage mode used to store binary data not available');
@@ -131,8 +111,9 @@ export class BinaryDataManager {
 
 	async retrieveBinaryDataByIdentifier(identifier: string): Promise<Buffer> {
 		const { mode, id } = this.splitBinaryModeFileId(identifier);
-		if (this.managers[mode]) {
-			return this.managers[mode].retrieveBinaryDataByIdentifier(id);
+		const manager = this.managers[mode];
+		if (manager) {
+			return manager.retrieveBinaryDataByIdentifier(id);
 		}
 
 		throw new Error('Storage mode used to store binary data not available');
@@ -140,8 +121,9 @@ export class BinaryDataManager {
 
 	getBinaryPath(identifier: string): string {
 		const { mode, id } = this.splitBinaryModeFileId(identifier);
-		if (this.managers[mode]) {
-			return this.managers[mode].getBinaryPath(id);
+		const manager = this.managers[mode];
+		if (manager) {
+			return manager.getBinaryPath(id);
 		}
 
 		throw new Error('Storage mode used to store binary data not available');
@@ -149,46 +131,44 @@ export class BinaryDataManager {
 
 	async getBinaryMetadata(identifier: string): Promise<BinaryMetadata> {
 		const { mode, id } = this.splitBinaryModeFileId(identifier);
-		if (this.managers[mode]) {
-			return this.managers[mode].getBinaryMetadata(id);
+		const manager = this.managers[mode];
+		if (manager) {
+			return manager.getBinaryMetadata(id);
 		}
 
 		throw new Error('Storage mode used to store binary data not available');
 	}
 
 	async markDataForDeletionByExecutionId(executionId: string): Promise<void> {
-		if (this.managers[this.binaryDataMode]) {
-			await this.managers[this.binaryDataMode].markDataForDeletionByExecutionId(executionId);
-		}
+		const manager = this.managers[this.binaryDataMode];
+		await manager?.markDataForDeletionByExecutionId(executionId);
 	}
 
 	async markDataForDeletionByExecutionIds(executionIds: string[]): Promise<void> {
-		if (this.managers[this.binaryDataMode]) {
+		const manager = this.managers[this.binaryDataMode];
+		if (manager) {
 			await Promise.all(
-				executionIds.map(async (id) =>
-					this.managers[this.binaryDataMode].markDataForDeletionByExecutionId(id),
-				),
+				executionIds.map(async (id) => manager.markDataForDeletionByExecutionId(id)),
 			);
 		}
 	}
 
 	async persistBinaryDataForExecutionId(executionId: string): Promise<void> {
-		if (this.managers[this.binaryDataMode]) {
-			await this.managers[this.binaryDataMode].persistBinaryDataForExecutionId(executionId);
-		}
+		const manager = this.managers[this.binaryDataMode];
+		await manager?.persistBinaryDataForExecutionId(executionId);
 	}
 
 	async deleteBinaryDataByExecutionId(executionId: string): Promise<void> {
-		if (this.managers[this.binaryDataMode]) {
-			await this.managers[this.binaryDataMode].deleteBinaryDataByExecutionId(executionId);
-		}
+		const manager = this.managers[this.binaryDataMode];
+		await manager?.deleteBinaryDataByExecutionId(executionId);
 	}
 
 	async duplicateBinaryData(
 		inputData: Array<INodeExecutionData[] | null> | unknown,
 		executionId: string,
 	): Promise<INodeExecutionData[][]> {
-		if (inputData && this.managers[this.binaryDataMode]) {
+		const manager = this.managers[this.binaryDataMode];
+		if (inputData && manager) {
 			const returnInputData = (inputData as INodeExecutionData[][]).map(
 				async (executionDataArray) => {
 					if (executionDataArray) {
@@ -217,17 +197,16 @@ export class BinaryDataManager {
 		return `${this.binaryDataMode}:${filename}`;
 	}
 
-	private splitBinaryModeFileId(fileId: string): { mode: string; id: string } {
+	private splitBinaryModeFileId(fileId: string): { mode: BinaryData.Mode; id: string } {
 		const [mode, id] = fileId.split(':');
-		return { mode, id };
+		return { mode: mode as BinaryData.Mode, id };
 	}
 
 	private async duplicateBinaryDataInExecData(
 		executionData: INodeExecutionData,
 		executionId: string,
 	): Promise<INodeExecutionData> {
-		const binaryManager = this.managers[this.binaryDataMode];
-
+		const manager = this.managers[this.binaryDataMode];
 		if (executionData.binary) {
 			const binaryDataKeys = Object.keys(executionData.binary);
 			const bdPromises = binaryDataKeys.map(async (key: string) => {
@@ -240,7 +219,8 @@ export class BinaryDataManager {
 					return { key, newId: undefined };
 				}
 
-				return binaryManager
+				// TODO: use awaits instead of chaining
+				return manager
 					?.duplicateBinaryDataByIdentifier(
 						this.splitBinaryModeFileId(binaryDataId).id,
 						executionId,

@@ -237,7 +237,7 @@ async function pruneExecutionData(this: WorkflowHooks): Promise<void> {
 				await Db.collections.Execution.delete({ id: In(executionIds) });
 				// Mark binary data for deletion for all executions
 				if (!isBinaryModeDefaultMode)
-					await BinaryDataManager.getInstance().markDataForDeletionByExecutionIds(executionIds);
+					await Container.get(BinaryDataManager).markDataForDeletionByExecutionIds(executionIds);
 			} while (executionIds.length > 0);
 		} catch (error) {
 			ErrorReporter.error(error);
@@ -579,7 +579,7 @@ function hookFunctionsSave(parentProcessMode?: string): IWorkflowExecuteHooks {
 					if (isManualMode && !saveManualExecutions && !fullRunData.waitTill) {
 						// Data is always saved, so we remove from database
 						await Db.collections.Execution.delete(this.executionId);
-						await BinaryDataManager.getInstance().markDataForDeletionByExecutionId(
+						await Container.get(BinaryDataManager).markDataForDeletionByExecutionId(
 							this.executionId,
 						);
 
@@ -620,7 +620,7 @@ function hookFunctionsSave(parentProcessMode?: string): IWorkflowExecuteHooks {
 							);
 							// Data is always saved, so we remove from database
 							await Db.collections.Execution.delete(this.executionId);
-							await BinaryDataManager.getInstance().markDataForDeletionByExecutionId(
+							await Container.get(BinaryDataManager).markDataForDeletionByExecutionId(
 								this.executionId,
 							);
 

@@ -1,3 +1,4 @@
+import { Container } from 'typedi';
 import nock from 'nock';
 import { join } from 'path';
 import { tmpdir } from 'os';
@@ -25,17 +26,13 @@ describe('NodeExecuteFunctions', () => {
 	describe('test binary data helper methods', () => {
 		// Reset BinaryDataManager for each run. This is a dirty operation, as individual managers are not cleaned.
 		beforeEach(() => {
-			BinaryDataManager.instance = undefined;
+			Container.set(BinaryDataManager, new BinaryDataManager());
 		});
 
 		test("test getBinaryDataBuffer(...) & setBinaryDataBuffer(...) methods in 'default' mode", async () => {
 			// Setup a 'default' binary data manager instance
-			await BinaryDataManager.init({
+			await Container.get(BinaryDataManager).init({
 				mode: 'default',
-				availableModes: 'default',
-				localStoragePath: temporaryDir,
-				binaryDataTTL: 1,
-				persistedBinaryDataTTL: 1,
 			});
 
 			// Set our binary data buffer
@@ -81,9 +78,8 @@ describe('NodeExecuteFunctions', () => {
 
 		test("test getBinaryDataBuffer(...) & setBinaryDataBuffer(...) methods in 'filesystem' mode", async () => {
 			// Setup a 'filesystem' binary data manager instance
-			await BinaryDataManager.init({
+			await Container.get(BinaryDataManager).init({
 				mode: 'filesystem',
-				availableModes: 'filesystem',
 				localStoragePath: temporaryDir,
 				binaryDataTTL: 1,
 				persistedBinaryDataTTL: 1,

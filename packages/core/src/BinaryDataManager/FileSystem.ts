@@ -6,46 +6,39 @@ import type { Readable } from 'stream';
 import type { BinaryMetadata } from 'n8n-workflow';
 import { jsonParse } from 'n8n-workflow';
 
-import type { IBinaryDataConfig, IBinaryDataManager } from '../Interfaces';
+import type { BinaryData, IBinaryDataManager } from '../Interfaces';
 import { FileNotFoundError } from '../errors';
 
 const PREFIX_METAFILE = 'binarymeta';
 const PREFIX_PERSISTED_METAFILE = 'persistedmeta';
+const MINUTE = 60000;
+const HOUR = 3600000;
 
-export class BinaryDataFileSystem implements IBinaryDataManager {
+export class FileSystemBinaryDataManager implements IBinaryDataManager {
 	private storagePath: string;
 
-	private binaryDataTTL: number;
+	private ttl: { binaryData: number; persistedData: number };
 
-	private persistedBinaryDataTTL: number;
-
-	constructor(config: IBinaryDataConfig) {
+	constructor(config: BinaryData.FileSystemConfig) {
 		this.storagePath = config.localStoragePath;
-		this.binaryDataTTL = config.binaryDataTTL;
-		this.persistedBinaryDataTTL = config.persistedBinaryDataTTL;
+		this.ttl = {
+			binaryData: config.binaryDataTTL * MINUTE,
+			persistedData: config.persistedBinaryDataTTL * MINUTE,
+		};
 	}
 
 	async init(startPurger = false): Promise<void> {
 		if (startPurger) {
-			setInterval(async () => {
-				await this.deleteMarkedFiles();
-			}, this.binaryDataTTL * 30000);
-
-			setInterval(async () => {
-				await this.deleteMarkedPersistedFiles();
-			}, this.persistedBinaryDataTTL * 30000);
+			setInterval(async () => this.deleteMarkedFiles(), this.ttl.binaryData);
+			setInterval(async () => this.deleteMarkedPersistedFiles(), this.ttl.persistedData);
 		}
 
-		return fs
-			.readdir(this.storagePath)
-			.catch(async () => fs.mkdir(this.storagePath, { recursive: true }))
-			.then(async () => fs.readdir(this.getBinaryDataMetaPath()))
-			.catch(async () => fs.mkdir(this.getBinaryDataMetaPath(), { recursive: true }))
-			.then(async () => fs.readdir(this.getBinaryDataPersistMetaPath()))
-			.catch(async () => fs.mkdir(this.getBinaryDataPersistMetaPath(), { recursive: true }))
-			.then(async () => this.deleteMarkedFiles())
-			.then(async () => this.deleteMarkedPersistedFiles())
-			.then(() => {});
+		// Ensure storage folders exists
+		await fs.mkdir(this.getBinaryDataMetaPath(), { recursive: true });
+		await fs.mkdir(this.getBinaryDataPersistMetaPath(), { recursive: true });
+
+		await this.deleteMarkedFiles();
+		await this.deleteMarkedPersistedFiles();
 	}
 
 	async getFileSize(identifier: string): Promise<number> {
@@ -94,7 +87,7 @@ export class BinaryDataFileSystem implements IBinaryDataManager {
 	}
 
 	async markDataForDeletionByExecutionId(executionId: string): Promise<void> {
-		const tt = new Date(new Date().getTime() + this.binaryDataTTL * 60000);
+		const tt = new Date(Date.now() + this.ttl.binaryData);
 		return fs.writeFile(
 			this.resolveStoragePath('meta', `${PREFIX_METAFILE}_${executionId}_${tt.valueOf()}`),
 			'',
@@ -113,9 +106,9 @@ export class BinaryDataFileSystem implements IBinaryDataManager {
 	}
 
 	private async addBinaryIdToPersistMeta(executionId: string, identifier: string): Promise<void> {
-		const currentTime = new Date().getTime();
-		const timeAtNextHour = currentTime + 3600000 - (currentTime % 3600000);
-		const timeoutTime = timeAtNextHour + this.persistedBinaryDataTTL * 60000;
+		const currentTime = Date.now();
+		const timeAtNextHour = currentTime + HOUR - (currentTime % HOUR);
+		const timeoutTime = timeAtNextHour + this.ttl.persistedData;
 
 		const filePath = this.resolveStoragePath(
 			'persistMeta',
@@ -129,7 +122,7 @@ export class BinaryDataFileSystem implements IBinaryDataManager {
 	}
 
 	private async deleteMarkedFilesByMeta(metaPath: string, filePrefix: string): Promise<void> {
-		const currentTimeValue = new Date().valueOf();
+		const currentTimeValue = Date.now();
 		const metaFileNames = await fs.readdir(metaPath);
 
 		const execsAdded: { [key: string]: number } = {};

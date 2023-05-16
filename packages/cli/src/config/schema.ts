@@ -6,26 +6,35 @@ import { UserSettings } from 'n8n-core';
 import { jsonParse } from 'n8n-workflow';
 import { IS_V1_RELEASE } from '@/constants';
 
-convict.addFormat({
-	name: 'nodes-list',
-	// @ts-ignore
-	validate(values: string[], { env }: { env: string }): void {
-		try {
-			if (!Array.isArray(values)) {
+const validateArray = (values: string[], { env }: convict.SchemaObj<any>): void => {
+	try {
+		if (!Array.isArray(values)) {
+			throw new Error();
+		}
+
+		for (const value of values) {
+			if (typeof value !== 'string') {
 				throw new Error();
 			}
-
-			for (const value of values) {
-				if (typeof value !== 'string') {
-					throw new Error();
-				}
-			}
-		} catch (error) {
-			throw new TypeError(`${env} is not a valid Array of strings.`);
 		}
-	},
+	} catch (error) {
+		throw new TypeError(`${env!} is not a valid Array of strings.`);
+	}
+};
+
+convict.addFormat({
+	name: 'nodes-list',
+	validate: validateArray,
 	coerce(rawValue: string): string[] {
 		return jsonParse(rawValue, { errorMessage: 'nodes-list needs to be valid JSON' });
+	},
+});
+
+convict.addFormat({
+	name: 'string-array',
+	validate: validateArray,
+	coerce(rawValue: string): string[] {
+		return rawValue.split(',');
 	},
 });
 
@@ -952,8 +961,8 @@ export const schema = {
 
 	binaryDataManager: {
 		availableModes: {
-			format: String,
-			default: 'filesystem',
+			format: 'string-array',
+			default: ['filesystem'],
 			env: 'N8N_AVAILABLE_BINARY_DATA_MODES',
 			doc: 'Available modes of binary data storage, as comma separated strings',
 		},

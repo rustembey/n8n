@@ -191,6 +191,8 @@ export class Server extends AbstractServer {
 
 	push: Push;
 
+	binaryDataManager: BinaryDataManager;
+
 	constructor() {
 		super();
 
@@ -330,6 +332,8 @@ export class Server extends AbstractServer {
 		this.activeExecutionsInstance = Container.get(ActiveExecutions);
 		this.waitTracker = Container.get(WaitTracker);
 		this.postHog = Container.get(PostHogClient);
+
+		this.binaryDataManager = Container.get(BinaryDataManager);
 
 		this.presetCredentialsLoaded = false;
 		this.endpointPresetCredentials = config.getEnv('credentials.overwrite.endpoint');
@@ -1297,13 +1301,12 @@ export class Server extends AbstractServer {
 			async (req: BinaryDataRequest, res: express.Response): Promise<void> => {
 				// TODO UM: check if this needs permission check for UM
 				const identifier = req.params.path;
-				const binaryDataManager = BinaryDataManager.getInstance();
 				try {
-					const binaryPath = binaryDataManager.getBinaryPath(identifier);
+					const binaryPath = this.binaryDataManager.getBinaryPath(identifier);
 					let { mode, fileName, mimeType } = req.query;
 					if (!fileName || !mimeType) {
 						try {
-							const metadata = await binaryDataManager.getBinaryMetadata(identifier);
+							const metadata = await this.binaryDataManager.getBinaryMetadata(identifier);
 							fileName = metadata.fileName;
 							mimeType = metadata.mimeType;
 							res.setHeader('Content-Length', metadata.fileSize);

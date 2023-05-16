@@ -49,12 +49,26 @@ export interface IWorkflowData {
 	triggerResponses?: ITriggerResponse[];
 }
 
-export interface IBinaryDataConfig {
-	mode: 'default' | 'filesystem';
-	availableModes: string;
-	localStoragePath: string;
-	binaryDataTTL: number;
-	persistedBinaryDataTTL: number;
+export namespace BinaryData {
+	export type Mode = 'default' | 'filesystem';
+
+	interface BaseConfig {
+		mode: Mode;
+		availableModes: Array<Exclude<Mode, 'default'>>;
+	}
+
+	interface DefaultConfig extends BaseConfig {
+		mode: 'default';
+	}
+
+	export interface FileSystemConfig extends BaseConfig {
+		mode: 'filesystem';
+		localStoragePath: string;
+		binaryDataTTL: number;
+		persistedBinaryDataTTL: number;
+	}
+
+	export type Config = DefaultConfig | FileSystemConfig;
 }
 
 export interface IBinaryDataManager {

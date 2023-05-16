@@ -56,6 +56,7 @@ export class InternalHooks implements IInternalHooksClass {
 		private telemetry: Telemetry,
 		private nodeTypes: NodeTypes,
 		private roleService: RoleService,
+		private binaryDataManager: BinaryDataManager,
 	) {}
 
 	async init(instanceId: string) {
@@ -449,7 +450,7 @@ export class InternalHooks implements IInternalHooksClass {
 				  }),
 		);
 
-		await BinaryDataManager.getInstance().persistBinaryDataForExecutionId(executionId);
+		await this.binaryDataManager.persistBinaryDataForExecutionId(executionId);
 
 		void Promise.all([...promises, this.telemetry.trackWorkflowExecution(properties)]);
 	}

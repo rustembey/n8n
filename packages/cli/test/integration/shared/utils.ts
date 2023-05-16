@@ -648,7 +648,7 @@ export async function initNodeTypes() {
  */
 export async function initBinaryManager() {
 	const binaryDataConfig = config.getEnv('binaryDataManager');
-	await BinaryDataManager.init(binaryDataConfig);
+	await Container.get(BinaryDataManager).init(binaryDataConfig);
 }
 
 /**

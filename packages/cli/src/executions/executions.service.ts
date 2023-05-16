@@ -649,7 +649,7 @@ export class ExecutionsService {
 
 		const idsToDelete = executions.map(({ id }) => id);
 
-		const binaryDataManager = BinaryDataManager.getInstance();
+		const binaryDataManager = Container.get(BinaryDataManager);
 		await Promise.all(
 			idsToDelete.map(async (id) => binaryDataManager.deleteBinaryDataByExecutionId(id)),
 		);

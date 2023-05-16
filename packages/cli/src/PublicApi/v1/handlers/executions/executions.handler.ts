@@ -37,7 +37,7 @@ export = {
 				return res.status(404).json({ message: 'Not Found' });
 			}
 
-			await BinaryDataManager.getInstance().deleteBinaryDataByExecutionId(execution.id);
+			await Container.get(BinaryDataManager).deleteBinaryDataByExecutionId(execution.id);
 
 			await deleteExecution(execution);
 
