@@ -635,6 +635,9 @@ importers:
       '@n8n/client-oauth2':
         specifier: workspace:*
         version: link:../@n8n/client-oauth2
+      aws4:
+        specifier: ^1.8.0
+        version: 1.11.0
       axios:
         specifier: ^0.21.1
         version: 0.21.4(debug@4.3.2)
@@ -696,6 +699,9 @@ importers:
         specifier: ^8.3.2
         version: 8.3.2
     devDependencies:
+      '@types/aws4':
+        specifier: ^1.5.1
+        version: 1.11.2
       '@types/concat-stream':
         specifier: ^2.0.0
         version: 2.0.0
@@ -9636,7 +9642,7 @@ packages:
       querystring: 0.2.0
       sax: 1.2.1
       url: 0.10.3
-      util: 0.12.4
+      util: 0.12.5
       uuid: 8.0.0
       xml2js: 0.5.0
     dev: false
@@ -22265,17 +22271,6 @@ packages:
       object.getownpropertydescriptors: 2.1.4
     dev: false
 
-  /util@0.12.4:
-    resolution: {integrity: sha512-bxZ9qtSlGUWSOy9Qa9Xgk11kSslpuZwaxCg4sNIDj6FLucDab2JxnHwyNTCpHMtK1MjoQiWQ6DiUMZYbSrO+Sw==}
-    dependencies:
-      inherits: 2.0.4
-      is-arguments: 1.1.1
-      is-generator-function: 1.0.10
-      is-typed-array: 1.1.10
-      safe-buffer: 5.2.1
-      which-typed-array: 1.1.9
-    dev: false
-
   /util@0.12.5:
     resolution: {integrity: sha512-kZf/K6hEIrWHI6XqOFUiiMa+79wE/D8Q+NCNAWclkyg3b4d2k7s0QGepNjiABc+aR3N1PAyHL7p6UcLY6LmrnA==}
     dependencies:
@@ -22284,7 +22279,6 @@ packages:
       is-generator-function: 1.0.10
       is-typed-array: 1.1.10
       which-typed-array: 1.1.9
-    dev: true
 
   /utila@0.4.0:
     resolution: {integrity: sha512-Z0DbgELS9/L/75wZbro8xAnT50pBVFQZ+hUEueGDU5FN51YSCYM+jdxsfCiHjwNP/4LCDD0i/graKpeBnOXKRA==}

@@ -5,25 +5,31 @@ import prettyBytes from 'pretty-bytes';
 import type { Readable } from 'stream';
 import { BINARY_ENCODING } from 'n8n-workflow';
 import type { BinaryData, IBinaryDataManager } from '../Interfaces';
-import { BinaryDataFileSystem } from './FileSystem';
+import { FileSystemBinaryDataManager } from './FileSystem';
 import { binaryToBuffer } from './utils';
+import { ObjectStoreBinaryDataManager } from './ObjectStore';
 
 @Service()
 export class BinaryDataManager {
 	private binaryDataMode: BinaryData.Mode = 'default';
 
-	private availableModes: BinaryData.Config['availableModes'] = [];
-
 	private managers: Partial<Record<BinaryData.Mode, IBinaryDataManager>> = {};
 
 	async init(config: BinaryData.Config, mainManager = false) {
 		this.binaryDataMode = config.mode;
-		this.availableModes = config.availableModes;
 
 		if (config.availableModes.includes('filesystem')) {
-			this.managers.filesystem = new BinaryDataFileSystem(config as BinaryData.FileSystemConfig);
-			await this.managers.filesystem.init(mainManager);
+			this.managers.filesystem = new FileSystemBinaryDataManager(
+				config as BinaryData.FileSystemConfig,
+			);
 		}
+		if (config.availableModes.includes('objectStore')) {
+			this.managers.objectStore = new ObjectStoreBinaryDataManager();
+		}
+
+		await Promise.all(
+			Object.values(this.managers).map(async (manager) => manager.init(mainManager)),
+		);
 	}
 
 	async copyBinaryFile(

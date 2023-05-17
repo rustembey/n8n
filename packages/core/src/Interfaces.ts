@@ -50,7 +50,7 @@ export interface IWorkflowData {
 }
 
 export namespace BinaryData {
-	export type Mode = 'default' | 'filesystem';
+	export type Mode = 'default' | 'filesystem' | 'objectStore';
 
 	interface BaseConfig {
 		mode: Mode;
