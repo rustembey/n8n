@@ -110,9 +110,8 @@ export class ExecuteWorkflow implements INodeType {
 			{
 				displayName: 'Workflow JSON',
 				name: 'workflowJson',
-				type: 'string',
+				type: 'json',
 				typeOptions: {
-					editor: 'json',
 					rows: 10,
 				},
 				displayOptions: {
@@ -183,8 +182,7 @@ export class ExecuteWorkflow implements INodeType {
 				workflowInfo.code = JSON.parse(workflowJson) as IWorkflowBase;
 			} else if (source === 'parameter') {
 				// Read workflow from parameter
-				const workflowJson = this.getNodeParameter('workflowJson', 0) as string;
-				workflowInfo.code = JSON.parse(workflowJson) as IWorkflowBase;
+				workflowInfo.code = this.getNodeParameter('workflowJson', 0) as IWorkflowBase;
 			} else if (source === 'url') {
 				// Read workflow from url
 				const workflowUrl = this.getNodeParameter('workflowUrl', 0) as string;

@@ -599,7 +599,7 @@ export class ItemListsV2 implements INodeType {
 					type: 'string',
 					typeOptions: {
 						alwaysOpenEditWindow: true,
-						editor: 'code',
+						editor: 'jsEditor',
 						rows: 10,
 					},
 					default: `// The two items to compare are in the variables a and b

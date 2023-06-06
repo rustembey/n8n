@@ -50,14 +50,14 @@ export class Discord implements INodeType {
 						displayName: 'Allowed Mentions',
 						name: 'allowedMentions',
 						type: 'json',
-						typeOptions: { alwaysOpenEditWindow: true, editor: 'code' },
+						typeOptions: { alwaysOpenEditWindow: true },
 						default: '',
 					},
 					{
 						displayName: 'Attachments',
 						name: 'attachments',
 						type: 'json',
-						typeOptions: { alwaysOpenEditWindow: true, editor: 'code' },
+						typeOptions: { alwaysOpenEditWindow: true },
 						default: '',
 					},
 					{
@@ -70,14 +70,14 @@ export class Discord implements INodeType {
 						displayName: 'Components',
 						name: 'components',
 						type: 'json',
-						typeOptions: { alwaysOpenEditWindow: true, editor: 'code' },
+						typeOptions: { alwaysOpenEditWindow: true },
 						default: '',
 					},
 					{
 						displayName: 'Embeds',
 						name: 'embeds',
 						type: 'json',
-						typeOptions: { alwaysOpenEditWindow: true, editor: 'code' },
+						typeOptions: { alwaysOpenEditWindow: true },
 						default: '',
 					},
 					{
@@ -90,7 +90,7 @@ export class Discord implements INodeType {
 						displayName: 'JSON Payload',
 						name: 'payloadJson',
 						type: 'json',
-						typeOptions: { alwaysOpenEditWindow: true, editor: 'code' },
+						typeOptions: { alwaysOpenEditWindow: true },
 						default: '',
 					},
 					{

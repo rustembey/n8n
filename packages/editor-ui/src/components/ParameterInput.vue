@@ -101,7 +101,7 @@
 
 				<html-editor
 					v-else-if="editorType === 'htmlEditor'"
-					:html="editorContent"
+					:value="editorContent"
 					:isReadOnly="isReadOnly"
 					:rows="getArgument('rows')"
 					:disableExpressionColoring="!isHtmlNode(node)"
@@ -111,9 +111,22 @@
 
 				<sql-editor
 					v-else-if="editorType === 'sqlEditor'"
-					:query="editorContent"
+					:value="editorContent"
 					:dialect="getArgument('sqlDialect')"
 					:isReadOnly="isReadOnly"
+					@valueChanged="valueChangedDebounced"
+				/>
+
+				<js-editor
+					v-else-if="editorType === 'jsEditor'"
+					:value="editorContent"
+					:isReadOnly="isReadOnly"
+					@valueChanged="valueChangedDebounced"
+				/>
+
+				<json-editor
+					v-else-if="parameter?.type === 'json'"
+					:value="editorContent"
 					@valueChanged="valueChangedDebounced"
 				/>
 
@@ -379,9 +392,11 @@ import ParameterIssues from '@/components/ParameterIssues.vue';
 import ResourceLocator from '@/components/ResourceLocator/ResourceLocator.vue';
 import ExpressionParameterInput from '@/components/ExpressionParameterInput.vue';
 import TextEdit from '@/components/TextEdit.vue';
-import CodeNodeEditor from '@/components/CodeNodeEditor/CodeNodeEditor.vue';
-import HtmlEditor from '@/components/HtmlEditor/HtmlEditor.vue';
-import SqlEditor from '@/components/SqlEditor/SqlEditor.vue';
+import CodeNodeEditor from '@/components/CodeEditors/CodeNodeEditor.vue';
+import JsEditor from '@/components/CodeEditors/JsEditor.vue';
+import HtmlEditor from '@/components/CodeEditors/HtmlEditor.vue';
+import JsonEditor from '@/components/CodeEditors/JsonEditor.vue';
+import SqlEditor from '@/components/CodeEditors/SqlEditor.vue';
 import { externalHooks } from '@/mixins/externalHooks';
 import { nodeHelpers } from '@/mixins/nodeHelpers';
 import { workflowHelpers } from '@/mixins/workflowHelpers';
@@ -404,7 +419,9 @@ export default defineComponent({
 	mixins: [externalHooks, nodeHelpers, workflowHelpers, debounceHelper],
 	components: {
 		CodeNodeEditor,
+		JsEditor,
 		HtmlEditor,
+		JsonEditor,
 		SqlEditor,
 		ExpressionEdit,
 		ExpressionParameterInput,
@@ -748,8 +765,8 @@ export default defineComponent({
 			return this.getArgument('editor') as EditorType;
 		},
 		editorLanguage(): CodeNodeEditorLanguage {
-			if (this.editorType === 'json' || this.parameter.type === 'json') return 'json';
-			return (this.getArgument('editorLanguage') as CodeNodeEditorLanguage) ?? 'javaScript';
+			if (this.editorType === 'jsonEditor' || this.parameter?.type === 'json') return 'javaScript';
+			return (this.getArgument('editorLanguage') as CodeNodeEditorLanguage) ?? 'jsEditor';
 		},
 		parameterOptions():
 			| Array<INodePropertyOptions | INodeProperties | INodePropertyCollection>
@@ -829,17 +846,17 @@ export default defineComponent({
 			if (!this.node) return null;
 			return this.nodeTypesStore.getNodeType(this.node.type, this.node.typeVersion);
 		},
-		editorContent(): string | undefined {
+		editorContent(): string {
 			if (!this.nodeType) {
-				return;
+				return '';
 			}
 			const editorProp = this.nodeType.properties.find(
 				(p) => p.typeOptions?.editor === (this.editorType as string),
 			);
 			if (!editorProp) {
-				return;
+				return '';
 			}
-			return this.node.parameters[editorProp.name] as string;
+			return (this.node.parameters[editorProp.name] as string) || '';
 		},
 	},
 	methods: {

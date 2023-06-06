@@ -1,4 +1,4 @@
-import { NODE_TYPES_EXCLUDED_FROM_AUTOCOMPLETION } from '@/components/CodeNodeEditor/constants';
+import { NODE_TYPES_EXCLUDED_FROM_AUTOCOMPLETION } from '@/components/CodeEditors/CodeNodeEditor/constants';
 import { SPLIT_IN_BATCHES_NODE_TYPE } from '@/constants';
 import { useWorkflowsStore } from '@/stores/workflows.store';
 import { resolveParameter } from '@/mixins/workflowHelpers';
