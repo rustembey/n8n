@@ -1,14 +1,23 @@
-import { jsonStringify } from 'n8n-workflow';
+import { Service } from 'typedi';
+import { type Readable } from 'stream';
+import { JsonStreamStringify } from 'json-stream-stringify';
 import type { IPushDataType } from '@/Interfaces';
 import { Logger } from '@/Logger';
 
+@Service()
 export abstract class AbstractPush<T> {
 	protected connections: Record<string, T> = {};
 
 	protected abstract close(connection: T): void;
-	protected abstract sendToOne(connection: T, data: string): void;
+	protected abstract sendTo(clients: T[], stream: Readable): Promise<void>;
+	protected abstract pingAll(): void;
 
-	constructor(private readonly logger: Logger) {}
+	private messageQueue: Array<[T[], Readable]> = [];
+
+	constructor(private readonly logger: Logger) {
+		// Ping all connected clients every 60 seconds
+		setInterval(() => this.pingAll(), 60 * 1000);
+	}
 
 	protected add(sessionId: string, connection: T): void {
 		const { connections } = this;
@@ -23,30 +32,38 @@ export abstract class AbstractPush<T> {
 		connections[sessionId] = connection;
 	}
 
-	protected remove(sessionId?: string): void {
-		if (sessionId !== undefined) {
-			this.logger.debug('Remove editor-UI session', { sessionId });
-			delete this.connections[sessionId];
-		}
+	protected remove(sessionId: string): void {
+		this.logger.debug('Remove editor-UI session', { sessionId });
+		delete this.connections[sessionId];
 	}
 
-	send<D>(type: IPushDataType, data: D, sessionId: string | undefined) {
+	send<D>(type: IPushDataType, data: D, sessionId: string) {
 		const { connections } = this;
-		if (sessionId !== undefined && connections[sessionId] === undefined) {
+		if (connections[sessionId] === undefined) {
 			this.logger.error(`The session "${sessionId}" is not registered.`, { sessionId });
 			return;
 		}
 
 		this.logger.debug(`Send data of type "${type}" to editor-UI`, { dataType: type, sessionId });
 
-		const sendData = jsonStringify({ type, data }, { replaceCircularRefs: true });
+		return this.enqueue([connections[sessionId]], type, data);
+	}
 
-		if (sessionId === undefined) {
-			// Send to all connected clients
-			Object.values(connections).forEach((connection) => this.sendToOne(connection, sendData));
-		} else {
-			// Send only to a specific client
-			this.sendToOne(connections[sessionId], sendData);
+	broadcast<D>(type: IPushDataType, data?: D) {
+		return this.enqueue(Object.values(this.connections), type, data);
+	}
+
+	// Push messages need to be
+	private enqueue<D>(clients: T[], type: IPushDataType, data?: D) {
+		const stream = new JsonStreamStringify({ type, data }, undefined, undefined, true);
+		this.messageQueue.push([clients, stream]);
+		setImmediate(async () => this.processQueue());
+	}
+
+	private async processQueue() {
+		while (this.messageQueue.length) {
+			const [clients, stream] = this.messageQueue.shift()!;
+			await this.sendTo(clients, stream);
 		}
 	}
 }
