@@ -2,18 +2,24 @@
 import type { PushDataUsersForWorkflow } from '@/Interface';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import { useUsersStore } from '@/stores';
+import { useWorkflowsStore } from '@/stores';
 
 export const useCollaborationStore = defineStore('collaboration', () => {
-	// const usersStore = useUsersStore();
+	const workflowStore = useWorkflowsStore();
 	const usersForWorkflows = ref<PushDataUsersForWorkflow>({});
 
 	const workflowUsersUpdated = (data: PushDataUsersForWorkflow) => {
 		usersForWorkflows.value = data;
 	};
 
+	const getUsersForCurrentWorkflow = () => {
+		const currentWorkflowId = workflowStore.workflowId;
+		return usersForWorkflows.value[currentWorkflowId] || [];
+	};
+
 	return {
 		usersForWorkflows,
 		workflowUsersUpdated,
+		getUsersForCurrentWorkflow,
 	};
 });
