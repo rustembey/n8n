@@ -615,6 +615,17 @@ export interface IUser extends IUserResponse {
 	mfaEnabled: boolean;
 }
 
+// Create a type that is the same as IUser but without some of the optional fields
+// that are only used in the frontend
+export type CollaborationUser = Omit<
+	IUser,
+	| 'isDefaultUser'
+	| 'isPendingUser'
+	| 'hasRecoveryCodesLeft'
+	| 'inviteAcceptUrl'
+	| 'mfaEnabled'
+	| 'isPending'
+>;
 export interface IVersionNotificationSettings {
 	enabled: boolean;
 	endpoint: string;

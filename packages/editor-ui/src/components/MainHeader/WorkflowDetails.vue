@@ -114,6 +114,7 @@
 					text
 				/>
 			</router-link>
+			<n8n-icon-button type="tertiary" icon="users" size="medium" text />
 			<div :class="$style.workflowMenuContainer">
 				<input
 					:class="$style.hiddenInput"

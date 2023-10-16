@@ -213,6 +213,11 @@ export const pushConnection = defineComponent({
 				return false;
 			}
 
+			if (receivedData.type === 'workflowUsersChanged') {
+				console.log('GOT THE MESSAGE!');
+				console.log(receivedData.data);
+			}
+
 			if (receivedData.type === 'sendConsoleMessage') {
 				const pushData = receivedData.data;
 				console.log(pushData.source, ...pushData.messages);

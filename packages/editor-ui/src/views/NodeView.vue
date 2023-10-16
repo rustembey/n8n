@@ -227,6 +227,7 @@ import { copyPaste } from '@/mixins/copyPaste';
 import { externalHooks } from '@/mixins/externalHooks';
 import { genericHelpers } from '@/mixins/genericHelpers';
 import { moveNodeWorkflow } from '@/mixins/moveNodeWorkflow';
+import { pushConnection } from '@/mixins/pushConnection';
 import {
 	useGlobalLinkActions,
 	useCanvasMouseSelect,
@@ -312,6 +313,7 @@ import {
 	useUIStore,
 	useHistoryStore,
 	useExternalSecretsStore,
+	useCollaborationStore,
 } from '@/stores';
 import * as NodeViewUtils from '@/utils/nodeViewUtils';
 import { getAccountAge, getConnectionInfo, getNodeViewTab } from '@/utils';
@@ -364,6 +366,7 @@ export default defineComponent({
 		workflowHelpers,
 		workflowRun,
 		debounceHelper,
+		pushConnection,
 	],
 	components: {
 		NodeDetailsView,
@@ -458,6 +461,10 @@ export default defineComponent({
 			next();
 			return;
 		}
+		if (this.workflowsStore.workflowId !== PLACEHOLDER_EMPTY_WORKFLOW_ID) {
+			// this.collaborationStore.onWorkflowClosed();
+			this.send({ type: 'workflowClosed', workflowId: this.workflowsStore.workflowId  });
+		}
 		if (this.uiStore.stateIsDirty && !this.readOnlyEnv) {
 			const confirmModal = await this.confirm(
 				this.$locale.baseText('generic.unsavedWork.confirmMessage.message'),
@@ -508,6 +515,7 @@ export default defineComponent({
 	},
 	computed: {
 		...mapStores(
+			useCollaborationStore,
 			useCanvasStore,
 			useTagsStore,
 			useCredentialsStore,
@@ -1025,6 +1033,8 @@ export default defineComponent({
 			} else {
 				this.workflowsStore.activeWorkflowExecution = selectedExecution;
 			}
+			// this.collaborationStore.onWorkflowOpened();
+			this.send({ type: 'workflowOpened', workflowId: workflow.id });
 			this.stopLoading();
 		},
 		touchTap(e: MouseEvent | TouchEvent) {
@@ -4332,6 +4342,7 @@ export default defineComponent({
 		}
 	},
 	async mounted() {
+		this.pushConnect();
 		this.resetWorkspace();
 		this.canvasStore.initInstance(this.$refs.nodeView as HTMLElement);
 		this.titleReset();
