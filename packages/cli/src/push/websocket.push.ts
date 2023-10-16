@@ -29,7 +29,9 @@ export class WebSocketPush extends AbstractPush<WebSocketConnection> {
 
 		connection.on('message', (data) => {
 			try {
-				this.onMessage(connection.userId, JSON.parse(data));
+				const buffer = Array.isArray(data) ? Buffer.concat(data) : Buffer.from(data);
+
+				this.onMessage(connection.userId, JSON.parse(buffer.toString('utf8')));
 			} catch (error) {
 				console.error(error);
 			}
