@@ -51,6 +51,7 @@ export const pushConnection = defineComponent({
 			pushMessageQueue: [] as Array<{ event: Event; retriesLeft: number }>,
 			connectRetries: 0,
 			lostConnection: false,
+			outgoingQueue: [] as Array<any>,
 		};
 	},
 	computed: {
@@ -113,6 +114,13 @@ export const pushConnection = defineComponent({
 			this.rootStore.pushConnectionActive = true;
 			this.clearAllStickyNotifications();
 			this.pushSource?.removeEventListener('open', this.onConnectionSuccess);
+
+			if (this.outgoingQueue.length) {
+				for (const message of this.outgoingQueue) {
+					this.pushSource?.send(JSON.stringify(message));
+				}
+				this.outgoingQueue = [];
+			}
 		},
 
 		onConnectionError() {
@@ -181,6 +189,15 @@ export const pushConnection = defineComponent({
 			if (this.pushMessageQueue.length !== 0 && this.retryTimeout === null) {
 				this.retryTimeout = setTimeout(this.processWaitingPushMessages, 25);
 			}
+		},
+
+		send(message: any) {
+			if (!this.rootStore.pushConnectionActive) {
+				this.outgoingQueue.push(message);
+				return;
+			}
+
+			this.pushSource?.send(JSON.stringify(message));
 		},
 
 		/**
