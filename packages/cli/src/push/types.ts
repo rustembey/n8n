@@ -5,7 +5,7 @@ import type { WebSocket } from 'ws';
 
 export type PushRequest = Request<{}, {}, {}, { sessionId: string }>;
 
-export type SSEPushRequest = PushRequest & { ws: undefined };
-export type WebSocketPushRequest = PushRequest & { ws: WebSocket };
+export type SSEPushRequest = PushRequest & { ws: undefined; userId: string };
+export type WebSocketPushRequest = PushRequest & { ws: WebSocket; userId: string };
 
 export type PushResponse = Response & { req: PushRequest };

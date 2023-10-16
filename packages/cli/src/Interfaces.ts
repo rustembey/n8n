@@ -518,7 +518,13 @@ export type IPushData =
 	| PushDataRemoveNodeType
 	| PushDataTestWebhook
 	| PushDataNodeDescriptionUpdated
-	| PushDataExecutionRecovered;
+	| PushDataExecutionRecovered
+	| PushDataWorkflowUsersChanged;
+
+type PushDataWorkflowUsersChanged = {
+	data: IWorkflowUsersChanged;
+	type: 'workflowUsersChanged';
+};
 
 type PushDataExecutionRecovered = {
 	data: IPushDataExecutionRecovered;
@@ -569,6 +575,10 @@ type PushDataNodeDescriptionUpdated = {
 	data: undefined;
 	type: 'nodeDescriptionUpdated';
 };
+
+export interface IWorkflowUsersChanged {
+	usersByWorkflowId: Record<string, User[]>;
+}
 
 export interface IPushDataExecutionRecovered {
 	executionId: string;

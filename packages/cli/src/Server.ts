@@ -155,6 +155,7 @@ import { RoleService } from './services/role.service';
 import { UserService } from './services/user.service';
 import { OrchestrationController } from './controllers/orchestration.controller';
 import { WorkflowHistoryController } from './workflows/workflowHistory/workflowHistory.controller.ee';
+import { CollaborationService } from './collaboration/collaboration.service';
 
 const exec = promisify(callbackExec);
 
@@ -178,6 +179,8 @@ export class Server extends AbstractServer {
 	postHog: PostHogClient;
 
 	push: Push;
+
+	collaborationService: CollaborationService;
 
 	constructor() {
 		super('main');
@@ -213,6 +216,7 @@ export class Server extends AbstractServer {
 		this.endpointPresetCredentials = config.getEnv('credentials.overwrite.endpoint');
 
 		this.push = Container.get(Push);
+		this.collaborationService = Container.get(CollaborationService);
 
 		await super.start();
 		LoggerProxy.debug(`Server ID: ${this.uniqueInstanceId}`);

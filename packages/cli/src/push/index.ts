@@ -10,19 +10,28 @@ import config from '@/config';
 import { resolveJwt } from '@/auth/jwt';
 import { AUTH_COOKIE_NAME } from '@/constants';
 import { SSEPush } from './sse.push';
+import type { WebSocketConnection } from './websocket.push';
 import { WebSocketPush } from './websocket.push';
 import type { PushResponse, SSEPushRequest, WebSocketPushRequest } from './types';
 import type { IPushDataType } from '@/Interfaces';
 
 const useWebSockets = config.getEnv('push.backend') === 'websocket';
 
+type MessageHandler = (userId: string, msg: unknown) => void;
+
 @Service()
 export class Push extends EventEmitter {
-	private backend = useWebSockets ? new WebSocketPush() : new SSEPush();
+	private messageHandlers: MessageHandler[] = [];
+
+	private backend = useWebSockets
+		? new WebSocketPush((userId, msg) => this.onMessage(userId, msg))
+		: new SSEPush();
 
 	handleRequest(req: SSEPushRequest | WebSocketPushRequest, res: PushResponse) {
 		if (req.ws) {
-			(this.backend as WebSocketPush).add(req.query.sessionId, req.ws);
+			const ws: WebSocketConnection = req.ws as any;
+			ws.userId = req.userId;
+			(this.backend as WebSocketPush).add(req.query.sessionId, ws);
 		} else if (!useWebSockets) {
 			(this.backend as SSEPush).add(req.query.sessionId, { req, res });
 		} else {
@@ -33,6 +42,14 @@ export class Push extends EventEmitter {
 
 	send<D>(type: IPushDataType, data: D, sessionId: string | undefined = undefined) {
 		this.backend.send(type, data, sessionId);
+	}
+
+	addMessageHandler(handler: MessageHandler) {
+		this.messageHandlers.push(handler);
+	}
+
+	private onMessage(userId: string, msg: unknown) {
+		this.messageHandlers.forEach((handler) => handler(userId, msg));
 	}
 }
 
@@ -82,7 +99,8 @@ export const setupPushHandler = (restEndpoint: string, app: Application) => {
 		try {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 			const authCookie: string = req.cookies?.[AUTH_COOKIE_NAME] ?? '';
-			await resolveJwt(authCookie);
+			const user = await resolveJwt(authCookie);
+			req.userId = user.id;
 		} catch (error) {
 			if (ws) {
 				ws.send(`Unauthorized: ${(error as Error).message}`);

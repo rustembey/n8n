@@ -1,19 +1,21 @@
 import type WebSocket from 'ws';
 import { AbstractPush } from './abstract.push';
 
+export type WebSocketConnection = WebSocket & { userId: string };
+
 function heartbeat(this: WebSocket) {
 	this.isAlive = true;
 }
 
-export class WebSocketPush extends AbstractPush<WebSocket> {
-	constructor() {
+export class WebSocketPush extends AbstractPush<WebSocketConnection> {
+	constructor(private readonly onMessage: (userId: string, msg: unknown) => void) {
 		super();
 
 		// Ping all connected clients every 60 seconds
 		setInterval(() => this.pingAll(), 60 * 1000);
 	}
 
-	add(sessionId: string, connection: WebSocket) {
+	add(sessionId: string, connection: WebSocketConnection) {
 		connection.isAlive = true;
 		connection.on('pong', heartbeat);
 
@@ -23,6 +25,14 @@ export class WebSocketPush extends AbstractPush<WebSocket> {
 		connection.once('close', () => {
 			connection.off('pong', heartbeat);
 			this.remove(sessionId);
+		});
+
+		connection.on('message', (data) => {
+			try {
+				this.onMessage(connection.userId, JSON.parse(data));
+			} catch (error) {
+				console.error(error);
+			}
 		});
 	}
 
