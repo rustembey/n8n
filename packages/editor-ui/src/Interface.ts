@@ -406,7 +406,11 @@ export interface IExecutionDeleteFilter {
 	ids?: string[];
 }
 
-export type PushDataUsersForWorkflow = { [workflowId: string]: IUser[] };
+export type PushDataUsersForWorkflow = {
+	[workflowId: string]: PushDataWFUserState;
+};
+
+export type PushDataWFUserState = Array<{ user: IUser; activeElementId: string | null }>;
 
 export type IPushData =
 	| PushDataExecutionFinished
