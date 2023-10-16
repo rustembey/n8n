@@ -576,8 +576,13 @@ type PushDataNodeDescriptionUpdated = {
 	type: 'nodeDescriptionUpdated';
 };
 
+export interface IWorkflowUserState {
+	user: User;
+	activeElementId: string | null;
+}
+
 export interface IWorkflowUsersChanged {
-	usersByWorkflowId: Record<string, User[]>;
+	usersByWorkflowId: Record<string, IWorkflowUserState[]>;
 }
 
 export interface IPushDataExecutionRecovered {

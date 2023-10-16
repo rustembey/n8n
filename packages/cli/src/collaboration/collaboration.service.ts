@@ -1,12 +1,25 @@
 import { Service } from 'typedi';
 import { Push } from '../push';
-import type { WorkflowClosedMessage, WorkflowOpenedMessage } from './collaboration.message';
-import { isWorkflowClosedMessage, isWorkflowOpenedMessage } from './collaboration.message';
+import type {
+	WorkflowClosedMessage,
+	WorkflowElementFocusedMessage,
+	WorkflowOpenedMessage,
+} from './collaboration.message';
+import {
+	isWorkflowClosedMessage,
+	isWorkflowElementFocusedMessage,
+	isWorkflowOpenedMessage,
+} from './collaboration.message';
 import { UserService } from '../services/user.service';
-import type { User } from '../databases/entities/User';
+import type { IWorkflowUsersChanged } from '../Interfaces';
+
+type WorkflowUserState = {
+	userId: string;
+	activeElementId: string | null;
+};
 
 type CollaborationState = {
-	activeUsersByWorkflowId: Record<string, string[]>;
+	activeUsersByWorkflowId: Record<string, WorkflowUserState[]>;
 };
 
 @Service()
@@ -31,6 +44,8 @@ export class CollaborationService {
 			await this.handleWorkflowOpened(userId, msg);
 		} else if (isWorkflowClosedMessage(msg)) {
 			await this.handleWorkflowClosed(userId, msg);
+		} else if (isWorkflowElementFocusedMessage(msg)) {
+			await this.handleWorkflowElementFocused(userId, msg);
 		}
 	}
 
@@ -42,8 +57,11 @@ export class CollaborationService {
 			activeUserByWorkflowId[workflowId] = [];
 		}
 
-		if (!activeUserByWorkflowId[workflowId].includes(userId)) {
-			activeUserByWorkflowId[workflowId].push(userId);
+		if (!activeUserByWorkflowId[workflowId].some((user) => user.userId === userId)) {
+			activeUserByWorkflowId[workflowId].push({
+				userId,
+				activeElementId: null,
+			});
 		}
 
 		await this.sendWorkflowUsersChangedMessage();
@@ -58,7 +76,7 @@ export class CollaborationService {
 		}
 
 		activeUserByWorkflowId[workflowId] = activeUserByWorkflowId[workflowId].filter(
-			(id) => id !== userId,
+			(userState) => userState.userId !== userId,
 		);
 
 		if (activeUserByWorkflowId[workflowId].length === 0) {
@@ -68,15 +86,38 @@ export class CollaborationService {
 		await this.sendWorkflowUsersChangedMessage();
 	}
 
+	async handleWorkflowElementFocused(userId: string, msg: WorkflowElementFocusedMessage) {
+		const { workflowId, activeElementId } = msg;
+		const { activeUsersByWorkflowId: activeUserByWorkflowId } = this.state;
+
+		if (!activeUserByWorkflowId[workflowId]) {
+			return;
+		}
+
+		const userState = activeUserByWorkflowId[workflowId].find((state) => state.userId === userId);
+		if (!userState) {
+			return;
+		}
+
+		userState.activeElementId = activeElementId;
+
+		await this.sendWorkflowUsersChangedMessage();
+	}
+
 	async sendWorkflowUsersChangedMessage() {
-		const userIds = Object.values(this.state.activeUsersByWorkflowId).flat();
+		const userIds = Object.values(this.state.activeUsersByWorkflowId)
+			.flat()
+			.map((user) => user.userId);
 		const users = await this.userService.getByIds(this.userService.getManager(), userIds);
 
-		const usersByWorkflowId: Record<string, User[]> = {};
-		for (const [workflowId, workflowUserIds] of Object.entries(
+		const usersByWorkflowId: IWorkflowUsersChanged['usersByWorkflowId'] = {};
+		for (const [workflowId, workflowUserState] of Object.entries(
 			this.state.activeUsersByWorkflowId,
 		)) {
-			usersByWorkflowId[workflowId] = users.filter((user) => workflowUserIds.includes(user.id));
+			usersByWorkflowId[workflowId] = workflowUserState.map((userState) => ({
+				user: users.find((user) => user.id === userState.userId)!,
+				activeElementId: userState.activeElementId,
+			}));
 		}
 
 		this.push.send('workflowUsersChanged', usersByWorkflowId);
