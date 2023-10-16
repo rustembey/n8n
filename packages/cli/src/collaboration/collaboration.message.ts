@@ -1,4 +1,7 @@
-export type CollaborationMessage = WorkflowOpenedMessage | WorkflowClosedMessage;
+export type CollaborationMessage =
+	| WorkflowOpenedMessage
+	| WorkflowClosedMessage
+	| WorkflowElementFocusedMessage;
 
 export type WorkflowOpenedMessage = {
 	type: 'workflowOpened';
@@ -8,6 +11,12 @@ export type WorkflowOpenedMessage = {
 export type WorkflowClosedMessage = {
 	type: 'workflowClosed';
 	workflowId: string;
+};
+
+export type WorkflowElementFocusedMessage = {
+	type: 'workflowElementFocused';
+	workflowId: string;
+	activeElementId: string | null;
 };
 
 const isWorkflowMessage = (msg: unknown): msg is CollaborationMessage => {
@@ -20,4 +29,10 @@ export const isWorkflowOpenedMessage = (msg: unknown): msg is WorkflowOpenedMess
 
 export const isWorkflowClosedMessage = (msg: unknown): msg is WorkflowClosedMessage => {
 	return isWorkflowMessage(msg) && msg.type === 'workflowClosed';
+};
+
+export const isWorkflowElementFocusedMessage = (
+	msg: unknown,
+): msg is WorkflowElementFocusedMessage => {
+	return isWorkflowMessage(msg) && msg.type === 'workflowElementFocused';
 };
