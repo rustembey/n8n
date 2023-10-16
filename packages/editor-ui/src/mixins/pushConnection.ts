@@ -34,6 +34,7 @@ import { useSettingsStore } from '@/stores/settings.store';
 import { parse } from 'flatted';
 import { useSegment } from '@/stores/segment.store';
 import { defineComponent } from 'vue';
+import { useCollaborationStore } from '@/stores';
 
 export const pushConnection = defineComponent({
 	setup() {
@@ -62,6 +63,7 @@ export const pushConnection = defineComponent({
 			useWorkflowsStore,
 			useSettingsStore,
 			useSegment,
+			useCollaborationStore,
 		),
 		sessionId(): string {
 			return this.rootStore.sessionId;
@@ -214,8 +216,7 @@ export const pushConnection = defineComponent({
 			}
 
 			if (receivedData.type === 'workflowUsersChanged') {
-				console.log('GOT THE MESSAGE!');
-				console.log(receivedData.data);
+				this.collaborationStore.workflowUsersUpdated(receivedData.data);
 			}
 
 			if (receivedData.type === 'sendConsoleMessage') {

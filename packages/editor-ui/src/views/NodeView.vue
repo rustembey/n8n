@@ -462,7 +462,6 @@ export default defineComponent({
 			return;
 		}
 		if (this.workflowsStore.workflowId !== PLACEHOLDER_EMPTY_WORKFLOW_ID) {
-			// this.collaborationStore.onWorkflowClosed();
 			this.send({ type: 'workflowClosed', workflowId: this.workflowsStore.workflowId  });
 		}
 		if (this.uiStore.stateIsDirty && !this.readOnlyEnv) {
@@ -1033,7 +1032,6 @@ export default defineComponent({
 			} else {
 				this.workflowsStore.activeWorkflowExecution = selectedExecution;
 			}
-			// this.collaborationStore.onWorkflowOpened();
 			this.send({ type: 'workflowOpened', workflowId: workflow.id });
 			this.stopLoading();
 		},

@@ -406,6 +406,8 @@ export interface IExecutionDeleteFilter {
 	ids?: string[];
 }
 
+export type PushDataUsersForWorkflow = { [workflowId: string]: IUser[] };
+
 export type IPushData =
 	| PushDataExecutionFinished
 	| PushDataExecutionStarted
@@ -415,7 +417,13 @@ export type IPushData =
 	| PushDataReloadNodeType
 	| PushDataRemoveNodeType
 	| PushDataTestWebhook
-	| PushDataExecutionRecovered;
+	| PushDataExecutionRecovered
+	| PushDataWorkflowUsersChanged;
+
+type PushDataWorkflowUsersChanged = {
+	data: PushDataUsersForWorkflow;
+	type: 'workflowUsersChanged';
+};
 
 type PushDataExecutionRecovered = {
 	data: IPushDataExecutionRecovered;
@@ -615,17 +623,6 @@ export interface IUser extends IUserResponse {
 	mfaEnabled: boolean;
 }
 
-// Create a type that is the same as IUser but without some of the optional fields
-// that are only used in the frontend
-export type CollaborationUser = Omit<
-	IUser,
-	| 'isDefaultUser'
-	| 'isPendingUser'
-	| 'hasRecoveryCodesLeft'
-	| 'inviteAcceptUrl'
-	| 'mfaEnabled'
-	| 'isPending'
->;
 export interface IVersionNotificationSettings {
 	enabled: boolean;
 	endpoint: string;
