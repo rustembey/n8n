@@ -1032,8 +1032,10 @@ export default defineComponent({
 			} else {
 				this.workflowsStore.activeWorkflowExecution = selectedExecution;
 			}
-			this.send({ type: 'workflowOpened', workflowId: workflow.id });
 			this.stopLoading();
+			setTimeout(() => {
+				this.send({ type: 'workflowOpened', workflowId: workflow.id });
+			}, 2000);
 		},
 		touchTap(e: MouseEvent | TouchEvent) {
 			if (this.isTouchDevice) {
@@ -1772,7 +1774,7 @@ export default defineComponent({
 					mousePosition[1] - NodeViewUtils.NODE_SIZE / 2,
 				] as XYPosition;
 
-				await this.onAddNodes(dropData, true, insertNodePosition);
+				await this.onAddNodes(dropData, true, insertNodePosition, false, true);
 				this.createNodeActive = false;
 			}
 		},
@@ -2062,7 +2064,7 @@ export default defineComponent({
 				newNodeData.webhookId = uuid();
 			}
 
-			await this.addNodes([newNodeData], undefined, trackHistory);
+			await this.addNodes([newNodeData], undefined, trackHistory, true);
 			this.workflowsStore.setNodePristine(newNodeData.name, true);
 
 			this.uiStore.stateIsDirty = true;
@@ -3187,7 +3189,7 @@ export default defineComponent({
 					);
 				}
 
-				await this.addNodes([newNodeData], [], true);
+				await this.addNodes([newNodeData], [], true, true);
 
 				const pinData = this.workflowsStore.pinDataByNodeName(nodeName);
 				if (pinData) {
@@ -3610,7 +3612,7 @@ export default defineComponent({
 			await this.$nextTick();
 
 			// Add the new updated nodes
-			await this.addNodes(Object.values(workflow.nodes), workflow.connectionsBySourceNode, false);
+			await this.addNodes(Object.values(workflow.nodes), workflow.connectionsBySourceNode, false, true);
 
 			// Make sure that the node is selected again
 			this.deselectAllNodes();
@@ -3691,11 +3693,15 @@ export default defineComponent({
 				},
 			);
 		},
-		async addNodes(nodes: INodeUi[], connections?: IConnections, trackHistory = false) {
+		async addNodes(
+			nodes: INodeUi[],
+			connections?: IConnections,
+			trackHistory = false,
+			notifyChange = false,
+		) {
 			if (!nodes?.length) {
 				return;
 			}
-
 			// Before proceeding we must check if all nodes contain the `properties` attribute.
 			// Nodes are loaded without this information so we must make sure that all nodes
 			// being added have this information.
@@ -3803,6 +3809,15 @@ export default defineComponent({
 
 			// Now it can draw again
 			this.instance?.setSuspendDrawing(false, true);
+			if (notifyChange) {
+				await this.getWorkflowDataToSave().then((workflowData) => {
+					this.send({
+						type: 'workflowChanged',
+						workflowId: workflowData.id,
+						workflowJson: workflowData,
+					});
+				});
+			}
 		},
 		async addNodesToWorkflow(data: IWorkflowDataUpdate): Promise<IWorkflowDataUpdate> {
 			// Because nodes with the same name maybe already exist, it could

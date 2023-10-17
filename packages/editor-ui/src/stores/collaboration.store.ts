@@ -14,7 +14,7 @@ export const useCollaborationStore = defineStore('collaboration', () => {
 
 	const getUsersForCurrentWorkflow = () => {
 		const currentWorkflowId = workflowStore.workflowId;
-		return usersForWorkflows.value[currentWorkflowId] || [];
+		return usersForWorkflows.value[currentWorkflowId]?.map((u) => u.user) || [];
 	};
 
 	return {
