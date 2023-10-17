@@ -92,7 +92,6 @@ export class CollaborationService {
 		};
 
 		const message = this.getWorkflowChangeMessage(workflowId);
-		assert(message);
 		await this.sendWorkflowChangedMessage(message);
 	}
 
@@ -114,7 +113,6 @@ export class CollaborationService {
 		await this.sendWorkflowUsersChangedMessage();
 		// Send the current draft state to the new user
 		const message = this.getWorkflowChangeMessage(workflowId);
-		assert(message);
 		await this.sendWorkflowChangedMessage(message, userId);
 	}
 
@@ -185,11 +183,9 @@ export class CollaborationService {
 		}
 	}
 
-	private getWorkflowChangeMessage(workflowId: string): IWorkflowChanged | undefined {
+	private getWorkflowChangeMessage(workflowId: string): IWorkflowChanged {
 		const workflowState = this.state.workflowDraftsByWorkflowId[workflowId];
-		if (!workflowState) {
-			return undefined;
-		}
+		assert(workflowState, `State mimssing for workflow ${workflowId}`);
 
 		return {
 			editedByUserId: workflowState.editedByUserId,
