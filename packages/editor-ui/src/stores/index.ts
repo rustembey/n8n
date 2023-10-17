@@ -27,3 +27,4 @@ export * from './sourceControl.store';
 export * from './sso.store';
 export * from './auditLogs.store';
 export * from './collaboration.store';
+export * from './pushConnection.store';

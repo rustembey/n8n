@@ -462,7 +462,7 @@ export default defineComponent({
 			return;
 		}
 		if (this.workflowsStore.workflowId !== PLACEHOLDER_EMPTY_WORKFLOW_ID) {
-			this.send({ type: 'workflowClosed', workflowId: this.workflowsStore.workflowId  });
+			this.collaborationStore.notifyWorkflowClosed(this.workflowsStore.workflowId);
 		}
 		if (this.uiStore.stateIsDirty && !this.readOnlyEnv) {
 			const confirmModal = await this.confirm(
@@ -1033,9 +1033,7 @@ export default defineComponent({
 				this.workflowsStore.activeWorkflowExecution = selectedExecution;
 			}
 			this.stopLoading();
-			setTimeout(() => {
-				this.send({ type: 'workflowOpened', workflowId: workflow.id });
-			}, 2000);
+			this.collaborationStore.notifyWorkflowOpened(workflow.id);
 		},
 		touchTap(e: MouseEvent | TouchEvent) {
 			if (this.isTouchDevice) {
@@ -3612,7 +3610,12 @@ export default defineComponent({
 			await this.$nextTick();
 
 			// Add the new updated nodes
-			await this.addNodes(Object.values(workflow.nodes), workflow.connectionsBySourceNode, false, true);
+			await this.addNodes(
+				Object.values(workflow.nodes),
+				workflow.connectionsBySourceNode,
+				false,
+				true,
+			);
 
 			// Make sure that the node is selected again
 			this.deselectAllNodes();
@@ -3811,11 +3814,7 @@ export default defineComponent({
 			this.instance?.setSuspendDrawing(false, true);
 			if (notifyChange) {
 				await this.getWorkflowDataToSave().then((workflowData) => {
-					this.send({
-						type: 'workflowChanged',
-						workflowId: workflowData.id,
-						workflowJson: workflowData,
-					});
+					this.collaborationStore.notifyWorkflowChanged(workflowData);
 				});
 			}
 		},
@@ -4355,7 +4354,6 @@ export default defineComponent({
 		}
 	},
 	async mounted() {
-		this.pushConnect();
 		this.resetWorkspace();
 		this.canvasStore.initInstance(this.$refs.nodeView as HTMLElement);
 		this.titleReset();

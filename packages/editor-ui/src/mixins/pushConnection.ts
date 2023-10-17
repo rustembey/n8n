@@ -35,6 +35,7 @@ import { parse } from 'flatted';
 import { useSegment } from '@/stores/segment.store';
 import { defineComponent } from 'vue';
 import { useCollaborationStore } from '@/stores';
+import { usePushConnectionStore } from '../stores/pushConnection.store';
 
 export const pushConnection = defineComponent({
 	setup() {
@@ -43,17 +44,16 @@ export const pushConnection = defineComponent({
 			...useToast(),
 		};
 	},
+	created() {
+		this.pushStore.addEventListener((message) => {
+			void this.pushMessageReceived(message);
+		});
+	},
 	mixins: [externalHooks, nodeHelpers, workflowHelpers],
 	data() {
 		return {
-			pushSource: null as WebSocket | EventSource | null,
-			reconnectTimeout: null as NodeJS.Timeout | null,
 			retryTimeout: null as NodeJS.Timeout | null,
-			pushMessageQueue: [] as Array<{ event: Event; retriesLeft: number }>,
-			connectRetries: 0,
-			lostConnection: false,
-			outgoingQueue: [] as Array<any>,
-			isConnectionOpen: false,
+			pushMessageQueue: [] as Array<{ message: IPushData; retriesLeft: number }>,
 		};
 	},
 	computed: {
@@ -65,101 +65,21 @@ export const pushConnection = defineComponent({
 			useSettingsStore,
 			useSegment,
 			useCollaborationStore,
+			usePushConnectionStore,
 		),
 		sessionId(): string {
 			return this.rootStore.sessionId;
 		},
 	},
 	methods: {
-		attemptReconnect() {
-			this.pushConnect();
-		},
-
-		/**
-		 * Connect to server to receive data via a WebSocket or EventSource
-		 */
-		pushConnect(): void {
-			// always close the previous connection so that we do not end up with multiple connections
-			this.pushDisconnect();
-
-			if (this.reconnectTimeout) {
-				clearTimeout(this.reconnectTimeout);
-				this.reconnectTimeout = null;
-			}
-
-			const useWebSockets = this.settingsStore.pushBackend === 'websocket';
-
-			const { getRestUrl: restUrl } = this.rootStore;
-			const url = `/push?sessionId=${this.sessionId}`;
-
-			if (useWebSockets) {
-				const { protocol, host } = window.location;
-				const baseUrl = restUrl.startsWith('http')
-					? restUrl.replace(/^http/, 'ws')
-					: `${protocol === 'https:' ? 'wss' : 'ws'}://${host + restUrl}`;
-				this.pushSource = new WebSocket(`${baseUrl}${url}`);
-			} else {
-				this.pushSource = new EventSource(`${restUrl}${url}`, { withCredentials: true });
-			}
-
-			this.pushSource.addEventListener('open', this.onConnectionSuccess, false);
-			this.pushSource.addEventListener('message', this.pushMessageReceived, false);
-			this.pushSource.addEventListener(
-				useWebSockets ? 'close' : 'error',
-				this.onConnectionError,
-				false,
-			);
-		},
-
-		onConnectionSuccess() {
-			this.isConnectionOpen = true;
-			this.connectRetries = 0;
-			this.lostConnection = false;
-			this.rootStore.pushConnectionActive = true;
-			this.clearAllStickyNotifications();
-			this.pushSource?.removeEventListener('open', this.onConnectionSuccess);
-
-			if (this.outgoingQueue.length) {
-				for (const message of this.outgoingQueue) {
-					this.pushSource?.send(JSON.stringify(message));
-				}
-				this.outgoingQueue = [];
-			}
-		},
-
-		onConnectionError() {
-			this.pushDisconnect();
-			this.connectRetries++;
-			this.reconnectTimeout = setTimeout(
-				this.attemptReconnect,
-				Math.min(this.connectRetries * 2000, 8000), // maximum 8 seconds backoff
-			);
-		},
-
-		/**
-		 * Close connection to server
-		 */
-		pushDisconnect(): void {
-			if (this.pushSource !== null) {
-				this.pushSource.removeEventListener('error', this.onConnectionError);
-				this.pushSource.removeEventListener('close', this.onConnectionError);
-				this.pushSource.removeEventListener('message', this.pushMessageReceived);
-				if (this.pushSource.readyState < 2) this.pushSource.close();
-				this.pushSource = null;
-			}
-
-			this.isConnectionOpen = false;
-			this.rootStore.pushConnectionActive = false;
-		},
-
 		/**
 		 * Sometimes the push message is faster as the result from
 		 * the REST API so we do not know yet what execution ID
 		 * is currently active. So internally resend the message
 		 * a few more times
 		 */
-		queuePushMessage(event: Event, retryAttempts: number) {
-			this.pushMessageQueue.push({ event, retriesLeft: retryAttempts });
+		queuePushMessage(event: IPushData, retryAttempts: number) {
+			this.pushMessageQueue.push({ message: event, retriesLeft: retryAttempts });
 
 			if (this.retryTimeout === null) {
 				this.retryTimeout = setTimeout(this.processWaitingPushMessages, 20);
@@ -169,7 +89,7 @@ export const pushConnection = defineComponent({
 		/**
 		 * Process the push messages which are waiting in the queue
 		 */
-		processWaitingPushMessages() {
+		async processWaitingPushMessages() {
 			if (this.retryTimeout !== null) {
 				clearTimeout(this.retryTimeout);
 				this.retryTimeout = null;
@@ -179,7 +99,8 @@ export const pushConnection = defineComponent({
 			for (let i = 0; i < queueLength; i++) {
 				const messageData = this.pushMessageQueue.shift();
 
-				if (this.pushMessageReceived(messageData!.event, true) === false) {
+				const result = await this.pushMessageReceived(messageData!.message, true);
+				if (result === false) {
 					// Was not successful
 					messageData!.retriesLeft -= 1;
 
@@ -196,27 +117,11 @@ export const pushConnection = defineComponent({
 			}
 		},
 
-		send(message: any) {
-			if (!this.isConnectionOpen) {
-				this.outgoingQueue.push(message);
-				return;
-			}
-
-			this.pushSource?.send(JSON.stringify(message));
-		},
-
 		/**
 		 * Process a newly received message
 		 */
-		async pushMessageReceived(event: Event, isRetry?: boolean): Promise<boolean> {
+		async pushMessageReceived(receivedData: IPushData, isRetry?: boolean): Promise<boolean> {
 			const retryAttempts = 5;
-			let receivedData: IPushData;
-			try {
-				// @ts-ignore
-				receivedData = JSON.parse(event.data);
-			} catch (error) {
-				return false;
-			}
 
 			if (receivedData.type === 'workflowChanged') {
 				console.log('workflowChanged');
@@ -240,7 +145,7 @@ export const pushConnection = defineComponent({
 			) {
 				// If there are already messages in the queue add the new one that all of them
 				// get executed in order
-				this.queuePushMessage(event, retryAttempts);
+				this.queuePushMessage(receivedData, retryAttempts);
 				return false;
 			}
 
@@ -254,7 +159,7 @@ export const pushConnection = defineComponent({
 					// The data is not for the currently active execution or
 					// we do not have the execution id yet.
 					if (isRetry !== true) {
-						this.queuePushMessage(event, retryAttempts);
+						this.queuePushMessage(receivedData, retryAttempts);
 					}
 					return false;
 				}
@@ -615,6 +520,7 @@ export const pushConnection = defineComponent({
 			}
 			return true;
 		},
+
 		getExecutionError(data: IRunExecutionData | IExecuteContextData) {
 			const error = data.resultData.error;
 

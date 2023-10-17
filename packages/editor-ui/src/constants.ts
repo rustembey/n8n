@@ -553,6 +553,7 @@ export const enum STORES {
 	NODE_CREATOR = 'nodeCreator',
 	WEBHOOKS = 'webhooks',
 	HISTORY = 'history',
+	PUSH = 'push',
 	CLOUD_PLAN = 'cloudPlan',
 }
 

@@ -54,6 +54,7 @@ import {
 	useCloudPlanStore,
 	useSourceControlStore,
 	useUsageStore,
+	usePushConnectionStore,
 } from '@/stores';
 import { useHistoryHelper } from '@/composables/useHistoryHelper';
 import { newVersions } from '@/mixins/newVersions';
@@ -90,6 +91,7 @@ export default defineComponent({
 			useSourceControlStore,
 			useCloudPlanStore,
 			useUsageStore,
+			usePushConnectionStore,
 		),
 		defaultLocale(): string {
 			return this.rootStore.defaultLocale;
@@ -153,6 +155,7 @@ export default defineComponent({
 			await this.initSettings();
 			ExpressionEvaluatorProxy.setEvaluator(useSettingsStore().settings.expressions.evaluator);
 			await Promise.all([this.loginWithCookie(), this.initTemplates()]);
+			this.pushStore.pushConnect();
 		},
 		trackPage(): void {
 			this.uiStore.currentView = this.$route.name || '';
