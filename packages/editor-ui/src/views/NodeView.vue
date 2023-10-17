@@ -346,6 +346,7 @@ import { EVENT_ADD_INPUT_ENDPOINT_CLICK } from '@/plugins/jsplumb/N8nAddInputEnd
 import { sourceControlEventBus } from '@/event-bus/source-control';
 import { getConnectorPaintStyleData, OVERLAY_ENDPOINT_ARROW_ID } from '@/utils/nodeViewUtils';
 import { useViewStacks } from '@/components/Node/NodeCreator/composables/useViewStacks';
+import { useCollaborationFocus } from '../composables/useCollaborationFocus';
 
 interface AddNodeOptions {
 	position?: XYPosition;
@@ -388,6 +389,7 @@ export default defineComponent({
 			...useMessage(),
 			...useUniqueNodeName(),
 			...useExecutionDebugging(),
+			...useCollaborationFocus(),
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
 			...workflowRun.setup?.(props),
 		};

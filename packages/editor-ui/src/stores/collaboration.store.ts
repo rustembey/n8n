@@ -7,9 +7,11 @@ import type {
 } from '@/Interface';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import { useCanvasStore, usePushConnectionStore, useUsersStore, useWorkflowsStore } from '@/stores';
 import type { ConnectionTypes, IConnection } from 'n8n-workflow';
 import * as NodeViewUtils from '@/utils/nodeViewUtils';
+import { useCanvasStore, usePushConnectionStore, useUsersStore, useWorkflowsStore } from '@/stores';
+
+const colors = ['rgba(255,0,0,0.5)', 'blue', 'green', 'yellow', 'purple'];
 
 export const useCollaborationStore = defineStore('collaboration', () => {
 	const workflowStore = useWorkflowsStore();
@@ -17,6 +19,33 @@ export const useCollaborationStore = defineStore('collaboration', () => {
 	const canvasStore = useCanvasStore();
 	const usersStore = useUsersStore();
 	const usersForWorkflows = ref<PushDataUsersForWorkflow>({});
+	const otherUserIds = ref<string[]>([]);
+	const focusByElementId = ref<Record<string, string[]>>({});
+
+	pushStore.addEventListener((event) => {
+		const activeWorkflowId = workflowStore.workflowId;
+		if (event.type === 'workflowUsersChanged') {
+			event.data[activeWorkflowId]?.forEach((u) => {
+				if (usersStore.currentUserId !== u.user.id && !otherUserIds.value.includes(u.user.id)) {
+					otherUserIds.value.push(u.user.id);
+				}
+			});
+
+			focusByElementId.value = event.data[activeWorkflowId]?.reduce((acc: any, u) => {
+				for (const id of u.activeElementIds) {
+					acc[id] = acc[id] || [];
+					const color = colors[otherUserIds.value.indexOf(u.user.id)];
+					if (!acc[id].includes(color)) {
+						acc[id].push(color);
+					}
+				}
+
+				return acc;
+			}, {});
+
+			console.log(otherUserIds.value, focusByElementId.value);
+		}
+	});
 
 	const workflowUsersUpdated = (data: PushDataUsersForWorkflow) => {
 		usersForWorkflows.value = data;
@@ -36,6 +65,10 @@ export const useCollaborationStore = defineStore('collaboration', () => {
 
 	const notifyWorkflowClosed = (workflowId: string) => {
 		pushStore.send({ type: 'workflowClosed', workflowId });
+	};
+
+	const notifyFocusChanged = (workflowId: string, activeElementIds: string[]) => {
+		pushStore.send({ type: 'workflowElementFocused', workflowId, activeElementIds });
 	};
 
 	const notifyWorkflowChanged = (workflow: IWorkflowData) => {
@@ -169,12 +202,19 @@ export const useCollaborationStore = defineStore('collaboration', () => {
 			return NodeViewUtils.getInputEndpointUUID(node.id, connectionType, index);
 		};
 
+	const getSelectionColor = (elementId: string) => {
+		console.log('getSelectionColor', elementId, focusByElementId.value);
+		return focusByElementId.value[elementId]?.[0];
+	};
+
 	return {
+		getSelectionColor,
 		usersForWorkflows,
 		workflowUsersUpdated,
 		getUsersForCurrentWorkflow,
 		notifyWorkflowChanged,
 		notifyWorkflowOpened,
+		notifyFocusChanged,
 		notifyWorkflowClosed,
 		onWorkflowChange,
 	};

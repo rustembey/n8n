@@ -17,7 +17,7 @@ export type WorkflowClosedMessage = {
 export type WorkflowElementFocusedMessage = {
 	type: 'workflowElementFocused';
 	workflowId: string;
-	activeElementId: string | null;
+	activeElementIds: string[];
 };
 
 export type WorkflowChangedMessage = {

@@ -101,6 +101,7 @@ export const usePushConnectionStore = defineStore(STORES.PUSH, () => {
 
 	function serializeAndSend(message: unknown) {
 		if (pushSource.value && 'send' in pushSource.value) {
+			console.log('Sending', message);
 			pushSource.value?.send(JSON.stringify(message));
 		}
 	}
@@ -142,6 +143,7 @@ export const usePushConnectionStore = defineStore(STORES.PUSH, () => {
 			return;
 		}
 
+		console.log('Received', receivedData);
 		onMessageReceivedHandlers.value.forEach((handler) => handler(receivedData));
 	}
 

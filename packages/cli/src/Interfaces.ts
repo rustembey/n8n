@@ -584,7 +584,7 @@ type PushDataNodeDescriptionUpdated = {
 
 export interface IWorkflowUserState {
 	user: User;
-	activeElementId: string | null;
+	activeElementIds: string[];
 }
 
 export interface IWorkflowChanged {

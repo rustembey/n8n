@@ -417,7 +417,7 @@ export type PushDataWorkflowChangedPayload = {
 	isSavedToDb: boolean;
 };
 
-export type PushDataWFUserState = Array<{ user: IUser; activeElementId: string | null }>;
+export type PushDataWFUserState = Array<{ user: IUser; activeElementIds: string[] }>;
 
 export type IPushData =
 	| PushDataExecutionFinished

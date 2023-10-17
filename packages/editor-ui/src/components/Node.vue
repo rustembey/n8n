@@ -9,6 +9,13 @@
 	>
 		<div class="select-background" v-show="isSelected"></div>
 		<div
+			class="select-background"
+			:style="{
+				backgroundColor: otherSelectionColor,
+			}"
+			v-show="!!otherSelectionColor"
+		></div>
+		<div
 			:class="{
 				'node-default': true,
 				'touch-active': isTouchActive,
@@ -199,6 +206,7 @@ import { useNDVStore } from '@/stores/ndv.store';
 import { useNodeTypesStore } from '@/stores/nodeTypes.store';
 import { EnableNodeToggleCommand } from '@/models/history';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { useCollaborationStore } from '../stores';
 
 export default defineComponent({
 	name: 'Node',
@@ -215,7 +223,13 @@ export default defineComponent({
 		},
 	},
 	computed: {
-		...mapStores(useNodeTypesStore, useNDVStore, useUIStore, useWorkflowsStore),
+		...mapStores(
+			useNodeTypesStore,
+			useNDVStore,
+			useUIStore,
+			useWorkflowsStore,
+			useCollaborationStore,
+		),
 		showPinnedDataInfo(): boolean {
 			return this.hasPinData && !this.isProductionExecutionPreview;
 		},
@@ -492,10 +506,14 @@ export default defineComponent({
 			return returnStyles;
 		},
 		isSelected(): boolean {
+			console.log(this.data);
 			return (
 				this.uiStore.getSelectedNodes.find((node: INodeUi) => node.name === this.data.name) !==
 				undefined
 			);
+		},
+		otherSelectionColor(): string {
+			return this.collaborationStore.getSelectionColor(this.data?.id);
 		},
 		shiftOutputCount(): boolean {
 			return !!(this.nodeType && this.outputs.length > 2);

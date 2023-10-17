@@ -19,7 +19,7 @@ import type { WorkflowEntity } from '../databases/entities/WorkflowEntity';
 
 type WorkflowUserState = {
 	userId: string;
-	activeElementId: string | null;
+	activeElementIds: string[];
 };
 
 type WorkflowState = {
@@ -106,7 +106,7 @@ export class CollaborationService {
 		if (!activeUserByWorkflowId[workflowId].some((user) => user.userId === userId)) {
 			activeUserByWorkflowId[workflowId].push({
 				userId,
-				activeElementId: null,
+				activeElementIds: [],
 			});
 		}
 
@@ -138,7 +138,7 @@ export class CollaborationService {
 	}
 
 	private async handleWorkflowElementFocused(userId: string, msg: WorkflowElementFocusedMessage) {
-		const { workflowId, activeElementId } = msg;
+		const { workflowId, activeElementIds } = msg;
 		const { activeUsersByWorkflowId: activeUserByWorkflowId } = this.state;
 
 		if (!activeUserByWorkflowId[workflowId]) {
@@ -150,7 +150,7 @@ export class CollaborationService {
 			return;
 		}
 
-		userState.activeElementId = activeElementId;
+		userState.activeElementIds = activeElementIds;
 
 		await this.sendWorkflowUsersChangedMessage();
 	}
@@ -167,7 +167,7 @@ export class CollaborationService {
 		)) {
 			usersByWorkflowId[workflowId] = workflowUserState.map((userState) => ({
 				user: users.find((user) => user.id === userState.userId)!,
-				activeElementId: userState.activeElementId,
+				activeElementIds: userState.activeElementIds,
 			}));
 		}
 
