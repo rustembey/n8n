@@ -124,8 +124,7 @@ export const pushConnection = defineComponent({
 			const retryAttempts = 5;
 
 			if (receivedData.type === 'workflowChanged') {
-				console.log('workflowChanged');
-				console.log(receivedData.data);
+				this.collaborationStore.onWorkflowChange(receivedData.data);
 			}
 
 			if (receivedData.type === 'workflowUsersChanged') {

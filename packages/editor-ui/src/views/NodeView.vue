@@ -2228,6 +2228,9 @@ export default defineComponent({
 						detachable: !this.isReadOnlyRoute && !this.readOnlyEnv,
 					});
 					this.historyStore.stopRecordingUndo();
+					void this.getWorkflowDataToSave().then((workflowData) => {
+						this.collaborationStore.notifyWorkflowChanged(workflowData);
+					});
 					return;
 				}
 			}
@@ -3806,17 +3809,10 @@ export default defineComponent({
 					}
 				}
 			}
-
 			// Add the node issues at the end as the node-connections are required
 			void this.refreshNodeIssues();
-
 			// Now it can draw again
 			this.instance?.setSuspendDrawing(false, true);
-			if (notifyChange) {
-				await this.getWorkflowDataToSave().then((workflowData) => {
-					this.collaborationStore.notifyWorkflowChanged(workflowData);
-				});
-			}
 		},
 		async addNodesToWorkflow(data: IWorkflowDataUpdate): Promise<IWorkflowDataUpdate> {
 			// Because nodes with the same name maybe already exist, it could
