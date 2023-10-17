@@ -1,3 +1,4 @@
+import { assert } from 'n8n-workflow';
 import { Service } from 'typedi';
 import { Push } from '../push';
 import type {
@@ -13,18 +14,24 @@ import {
 	isWorkflowOpenedMessage,
 } from './collaboration.message';
 import { UserService } from '../services/user.service';
-import type { IWorkflowUsersChanged } from '../Interfaces';
+import type { IWorkflowChanged, IWorkflowUsersChanged } from '../Interfaces';
+import type { WorkflowEntity } from '../databases/entities/WorkflowEntity';
 
 type WorkflowUserState = {
 	userId: string;
 	activeElementId: string | null;
 };
 
+type WorkflowState = {
+	workflowJson: WorkflowJson;
+	editedByUserId: string;
+};
+
 type WorkflowJson = unknown;
 
 type CollaborationState = {
 	activeUsersByWorkflowId: Record<string, WorkflowUserState[]>;
-	workflowDraftsByWorkflowId: Record<string, WorkflowJson>;
+	workflowDraftsByWorkflowId: Record<string, WorkflowState>;
 };
 
 @Service()
@@ -46,6 +53,19 @@ export class CollaborationService {
 		});
 	}
 
+	async workflowSavedToDb(workflow: WorkflowEntity, userId: string) {
+		const workflowId = workflow.id;
+
+		delete this.state.workflowDraftsByWorkflowId[workflowId];
+
+		await this.sendWorkflowChangedMessage({
+			editedByUserId: userId,
+			isSavedToDb: true,
+			workflowId,
+			workflowJson: workflow,
+		});
+	}
+
 	private async handleUserMessage(userId: string, msg: unknown) {
 		console.log('WS Message', userId, msg);
 
@@ -60,16 +80,23 @@ export class CollaborationService {
 		}
 	}
 
-	async handleWorkflowChanged(_userId: string, msg: WorkflowChangedMessage) {
+	private async handleWorkflowChanged(userId: string, msg: WorkflowChangedMessage) {
 		const { workflowId, workflowJson } = msg;
 		const { workflowDraftsByWorkflowId: workflowDraftsByWorkflowId } = this.state;
 
-		workflowDraftsByWorkflowId[workflowId] = workflowJson;
+		// TODO: We should use a proper conflict free data structure here
+		// to store the workflow drafts. For now it's just last write wins
+		workflowDraftsByWorkflowId[workflowId] = {
+			workflowJson,
+			editedByUserId: userId,
+		};
 
-		await this.sendWorkflowChangedMessage(workflowId);
+		const message = this.getWorkflowChangeMessage(workflowId);
+		assert(message);
+		await this.sendWorkflowChangedMessage(message);
 	}
 
-	async handleWorkflowOpened(userId: string, msg: WorkflowOpenedMessage) {
+	private async handleWorkflowOpened(userId: string, msg: WorkflowOpenedMessage) {
 		const { workflowId } = msg;
 		const { activeUsersByWorkflowId: activeUserByWorkflowId } = this.state;
 
@@ -86,10 +113,12 @@ export class CollaborationService {
 
 		await this.sendWorkflowUsersChangedMessage();
 		// Send the current draft state to the new user
-		await this.sendWorkflowChangedMessage(workflowId, userId);
+		const message = this.getWorkflowChangeMessage(workflowId);
+		assert(message);
+		await this.sendWorkflowChangedMessage(message, userId);
 	}
 
-	async handleWorkflowClosed(userId: string, msg: WorkflowClosedMessage) {
+	private async handleWorkflowClosed(userId: string, msg: WorkflowClosedMessage) {
 		const { workflowId } = msg;
 		const { activeUsersByWorkflowId: activeUserByWorkflowId } = this.state;
 
@@ -110,7 +139,7 @@ export class CollaborationService {
 		await this.sendWorkflowUsersChangedMessage();
 	}
 
-	async handleWorkflowElementFocused(userId: string, msg: WorkflowElementFocusedMessage) {
+	private async handleWorkflowElementFocused(userId: string, msg: WorkflowElementFocusedMessage) {
 		const { workflowId, activeElementId } = msg;
 		const { activeUsersByWorkflowId: activeUserByWorkflowId } = this.state;
 
@@ -128,7 +157,7 @@ export class CollaborationService {
 		await this.sendWorkflowUsersChangedMessage();
 	}
 
-	async sendWorkflowUsersChangedMessage() {
+	private async sendWorkflowUsersChangedMessage() {
 		const userIds = Object.values(this.state.activeUsersByWorkflowId)
 			.flat()
 			.map((user) => user.userId);
@@ -147,15 +176,26 @@ export class CollaborationService {
 		this.push.send('workflowUsersChanged', usersByWorkflowId);
 	}
 
-	async sendWorkflowChangedMessage(workflowId: string, toUserId?: string) {
-		const workflowJson = this.state.workflowDraftsByWorkflowId[workflowId];
-		const message = { workflowId, workflowJson };
-
+	private async sendWorkflowChangedMessage(message: IWorkflowChanged, toUserId?: string) {
 		if (toUserId === undefined) {
 			this.push.send('workflowChanged', message);
 		} else {
 			const sessionId = this.sessionIdByUserId[toUserId];
 			this.push.send('workflowChanged', message, sessionId);
 		}
+	}
+
+	private getWorkflowChangeMessage(workflowId: string): IWorkflowChanged | undefined {
+		const workflowState = this.state.workflowDraftsByWorkflowId[workflowId];
+		if (!workflowState) {
+			return undefined;
+		}
+
+		return {
+			editedByUserId: workflowState.editedByUserId,
+			workflowJson: workflowState.workflowJson,
+			isSavedToDb: false,
+			workflowId,
+		};
 	}
 }

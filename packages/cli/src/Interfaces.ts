@@ -590,6 +590,8 @@ export interface IWorkflowUserState {
 export interface IWorkflowChanged {
 	workflowId: string;
 	workflowJson: unknown;
+	editedByUserId: string;
+	isSavedToDb: boolean;
 }
 
 export interface IWorkflowUsersChanged {

@@ -36,6 +36,7 @@ import { isStringArray, isWorkflowIdValid } from '@/utils';
 import { isWorkflowHistoryLicensed } from './workflowHistory/workflowHistoryHelper.ee';
 import { WorkflowHistoryService } from './workflowHistory/workflowHistory.service.ee';
 import { BinaryDataService } from 'n8n-core';
+import { CollaborationService } from '../collaboration/collaboration.service';
 
 export class WorkflowsService {
 	static async getSharing(
@@ -356,6 +357,8 @@ export class WorkflowsService {
 				throw new ResponseHelper.BadRequestError(message);
 			}
 		}
+
+		await Container.get(CollaborationService).workflowSavedToDb(updatedWorkflow, user.id);
 
 		return updatedWorkflow;
 	}
