@@ -82,7 +82,7 @@ export class CollaborationService {
 
 	private async handleWorkflowChanged(userId: string, msg: WorkflowChangedMessage) {
 		const { workflowId, workflowJson } = msg;
-		const { workflowDraftsByWorkflowId: workflowDraftsByWorkflowId } = this.state;
+		const { workflowDraftsByWorkflowId } = this.state;
 
 		// TODO: We should use a proper conflict free data structure here
 		// to store the workflow drafts. For now it's just last write wins
@@ -185,7 +185,7 @@ export class CollaborationService {
 
 	private getWorkflowChangeMessage(workflowId: string): IWorkflowChanged {
 		const workflowState = this.state.workflowDraftsByWorkflowId[workflowId];
-		assert(workflowState, `State mimssing for workflow ${workflowId}`);
+		assert(workflowState, `State missing for workflow ${workflowId}`);
 
 		return {
 			editedByUserId: workflowState.editedByUserId,
