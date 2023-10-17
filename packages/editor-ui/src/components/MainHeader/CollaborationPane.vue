@@ -19,7 +19,11 @@ const activeUsers = computed(() => {
 				<el-dropdown-menu>
 					<el-dropdown-item v-for="user in activeUsers" :key="user.id">
 						<div :class="$style.itemContainer">
-							<n8n-avatar :firstName="user.user.firstName" :lastName="user.user.lastName" />
+							<n8n-avatar
+								:firstName="user.user.firstName"
+								:lastName="user.user.lastName"
+								size="small"
+							/>
 							<span>{{ user.user.firstName }} {{ user.user.lastName }}</span>
 							<font-awesome-icon v-if="user.user.globalRoleId === 1" icon="crown" />
 						</div>
@@ -40,7 +44,10 @@ const activeUsers = computed(() => {
 .itemContainer {
 	display: flex;
 	gap: 5px;
-	margin-bottom: 15px;
 	align-items: center;
+
+	& + & {
+		margin-bottom: 20px;
+	}
 }
 </style>
