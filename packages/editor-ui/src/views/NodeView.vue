@@ -3523,6 +3523,9 @@ export default defineComponent({
 				const recordingTimeout = waitForNewConnection ? 100 : 0;
 				setTimeout(() => {
 					this.historyStore.stopRecordingUndo();
+					void this.getWorkflowDataToSave().then((workflowData) => {
+						this.collaborationStore.notifyWorkflowChanged(workflowData);
+					});
 				}, recordingTimeout);
 			}
 		},

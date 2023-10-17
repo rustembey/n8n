@@ -49,16 +49,15 @@ export const useCollaborationStore = defineStore('collaboration', () => {
 	const onWorkflowChange = (messagePayload: PushDataWorkflowChangedPayload) => {
 		const currentUserId = usersStore.currentUserId;
 		if (messagePayload.editedByUserId !== currentUserId) {
-			canvasStore.jsPlumbInstance.connections.forEach((c) => {
-				canvasStore.jsPlumbInstance?.deleteConnection(c);
-			});
 			workflowStore.setWorkflow(messagePayload.workflowJson as IWorkflowDb);
-			Object.entries(messagePayload.workflowJson.connections).forEach((c) => {
-				const c1: IConnection = { node: c[0], type: 'main', index: 0 };
-				const c2: IConnection = c[1]['main'][0][0];
-				console.log(c1, c2);
-				// __addConnection([c1, c2]);
-			});
+			// canvasStore.jsPlumbInstance?.setSuspendDrawing(true, true);
+			// Object.entries(messagePayload.workflowJson.connections).forEach((c) => {
+			// 	const c1: IConnection = { node: c[0], type: 'main', index: 0 };
+			// 	const c2: IConnection = c[1].main[0][0];
+			// 	console.log(c1, c2);
+			// 	connectTwoNodes(c1.node, c1.index, c2.node, c2.index, c1.type as ConnectionTypes);
+			// });
+			// canvasStore.jsPlumbInstance?.setSuspendDrawing(false, true);
 		}
 	};
 
@@ -83,6 +82,67 @@ export const useCollaborationStore = defineStore('collaboration', () => {
 		canvasStore.jsPlumbInstance?.connect({
 			uuids: uuid,
 		});
+	};
+
+	const getConnection = (
+		sourceNodeName: string,
+		sourceNodeOutputIndex: number,
+		targetNodeName: string,
+		targetNodeOuputIndex: number,
+		type: ConnectionTypes,
+	): IConnection | undefined => {
+		const nodeConnections = workflowStore.outgoingConnectionsByNodeName(sourceNodeName)[type];
+		if (nodeConnections) {
+			const connections: IConnection[] | null = nodeConnections[sourceNodeOutputIndex];
+
+			if (connections) {
+				return connections.find(
+					(connection: IConnection) =>
+						connection.node === targetNodeName && connection.index === targetNodeOuputIndex,
+				);
+			}
+		}
+
+		return undefined;
+	};
+
+	const connectTwoNodes = (
+		sourceNodeName: string,
+		sourceNodeOutputIndex: number,
+		targetNodeName: string,
+		targetNodeOutputIndex: number,
+		type: ConnectionTypes,
+	) => {
+		const sourceNode = workflowStore.getNodeByName(sourceNodeName);
+		const targetNode = workflowStore.getNodeByName(targetNodeName);
+
+		if (
+			getConnection(
+				sourceNodeName,
+				sourceNodeOutputIndex,
+				targetNodeName,
+				targetNodeOutputIndex,
+				type,
+			)
+		) {
+			console.log('Connection already exists');
+			return;
+		}
+
+		const connectionData = [
+			{
+				node: sourceNodeName,
+				type,
+				index: sourceNodeOutputIndex,
+			},
+			{
+				node: targetNodeName,
+				type,
+				index: targetNodeOutputIndex,
+			},
+		] as [IConnection, IConnection];
+
+		__addConnection(connectionData);
 	};
 
 	const getOutputEndpointUUID = (

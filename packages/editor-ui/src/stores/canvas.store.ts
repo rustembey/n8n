@@ -7,6 +7,7 @@ import {
 	useUIStore,
 	useHistoryStore,
 	useSourceControlStore,
+	useCollaborationStore,
 } from '@/stores';
 import type { INodeUi, XYPosition } from '@/Interface';
 import {
@@ -266,6 +267,7 @@ export const useCanvasStore = defineStore('canvas', () => {
 									new MoveNodeCommand(node.name, oldPosition, newNodePosition),
 								);
 								workflowStore.updateNodeProperties(updateInformation);
+								useCollaborationStore().notifyWorkflowChanged(workflowStore.workflow);
 							}
 						});
 						if (moveNodes.length > 1) {
