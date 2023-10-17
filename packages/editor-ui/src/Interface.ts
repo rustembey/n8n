@@ -410,6 +410,13 @@ export type PushDataUsersForWorkflow = {
 	[workflowId: string]: PushDataWFUserState;
 };
 
+export type PushDataWorkflowChangedPayload = {
+	workflowId: string;
+	workflowJson: IWorkflowDb;
+	editedByUserId: string;
+	isSavedToDb: boolean;
+};
+
 export type PushDataWFUserState = Array<{ user: IUser; activeElementId: string | null }>;
 
 export type IPushData =
@@ -422,7 +429,13 @@ export type IPushData =
 	| PushDataRemoveNodeType
 	| PushDataTestWebhook
 	| PushDataExecutionRecovered
-	| PushDataWorkflowUsersChanged;
+	| PushDataWorkflowUsersChanged
+	| PushDataWorkflowChanged;
+
+type PushDataWorkflowChanged = {
+	data: PushDataWorkflowChangedPayload;
+	type: 'workflowChanged';
+};
 
 type PushDataWorkflowUsersChanged = {
 	data: PushDataUsersForWorkflow;

@@ -218,6 +218,11 @@ export const pushConnection = defineComponent({
 				return false;
 			}
 
+			if (receivedData.type === 'workflowChanged') {
+				console.log('workflowChanged');
+				console.log(receivedData.data);
+			}
+
 			if (receivedData.type === 'workflowUsersChanged') {
 				this.collaborationStore.workflowUsersUpdated(receivedData.data);
 			}
