@@ -17,14 +17,14 @@ import type { IPushDataType } from '@/Interfaces';
 
 const useWebSockets = config.getEnv('push.backend') === 'websocket';
 
-type MessageHandler = (userId: string, msg: unknown) => void;
+type MessageHandler = (sessionId: string, userId: string, msg: unknown) => void;
 
 @Service()
 export class Push extends EventEmitter {
 	private messageHandlers: MessageHandler[] = [];
 
 	private backend = useWebSockets
-		? new WebSocketPush((userId, msg) => this.onMessage(userId, msg))
+		? new WebSocketPush((sessionId, userId, msg) => this.onMessage(sessionId, userId, msg))
 		: new SSEPush();
 
 	handleRequest(req: SSEPushRequest | WebSocketPushRequest, res: PushResponse) {
@@ -48,8 +48,8 @@ export class Push extends EventEmitter {
 		this.messageHandlers.push(handler);
 	}
 
-	private onMessage(userId: string, msg: unknown) {
-		this.messageHandlers.forEach((handler) => handler(userId, msg));
+	private onMessage(sessionId: string, userId: string, msg: unknown) {
+		this.messageHandlers.forEach((handler) => handler(sessionId, userId, msg));
 	}
 }
 

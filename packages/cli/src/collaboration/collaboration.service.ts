@@ -1,11 +1,13 @@
 import { Service } from 'typedi';
 import { Push } from '../push';
 import type {
+	WorkflowChangedMessage,
 	WorkflowClosedMessage,
 	WorkflowElementFocusedMessage,
 	WorkflowOpenedMessage,
 } from './collaboration.message';
 import {
+	isWorkflowChangedMessage,
 	isWorkflowClosedMessage,
 	isWorkflowElementFocusedMessage,
 	isWorkflowOpenedMessage,
@@ -18,21 +20,28 @@ type WorkflowUserState = {
 	activeElementId: string | null;
 };
 
+type WorkflowJson = unknown;
+
 type CollaborationState = {
 	activeUsersByWorkflowId: Record<string, WorkflowUserState[]>;
+	workflowDraftsByWorkflowId: Record<string, WorkflowJson>;
 };
 
 @Service()
 export class CollaborationService {
+	private readonly sessionIdByUserId: Record<string, string> = {};
+
 	private state: CollaborationState = {
 		activeUsersByWorkflowId: {},
+		workflowDraftsByWorkflowId: {},
 	};
 
 	constructor(
 		private readonly push: Push,
 		private readonly userService: UserService,
 	) {
-		this.push.addMessageHandler((userId, msg) => {
+		this.push.addMessageHandler((sessionId, userId, msg) => {
+			this.sessionIdByUserId[userId] = sessionId;
 			void this.handleUserMessage(userId, msg);
 		});
 	}
@@ -46,7 +55,18 @@ export class CollaborationService {
 			await this.handleWorkflowClosed(userId, msg);
 		} else if (isWorkflowElementFocusedMessage(msg)) {
 			await this.handleWorkflowElementFocused(userId, msg);
+		} else if (isWorkflowChangedMessage(msg)) {
+			await this.handleWorkflowChanged(userId, msg);
 		}
+	}
+
+	async handleWorkflowChanged(_userId: string, msg: WorkflowChangedMessage) {
+		const { workflowId, workflowJson } = msg;
+		const { workflowDraftsByWorkflowId: workflowDraftsByWorkflowId } = this.state;
+
+		workflowDraftsByWorkflowId[workflowId] = workflowJson;
+
+		await this.sendWorkflowChangedMessage(workflowId);
 	}
 
 	async handleWorkflowOpened(userId: string, msg: WorkflowOpenedMessage) {
@@ -65,6 +85,8 @@ export class CollaborationService {
 		}
 
 		await this.sendWorkflowUsersChangedMessage();
+		// Send the current draft state to the new user
+		await this.sendWorkflowChangedMessage(workflowId, userId);
 	}
 
 	async handleWorkflowClosed(userId: string, msg: WorkflowClosedMessage) {
@@ -81,6 +103,8 @@ export class CollaborationService {
 
 		if (activeUserByWorkflowId[workflowId].length === 0) {
 			delete activeUserByWorkflowId[workflowId];
+			// No users anymore editing this workflow, delete the draft
+			delete this.state.workflowDraftsByWorkflowId[workflowId];
 		}
 
 		await this.sendWorkflowUsersChangedMessage();
@@ -121,5 +145,17 @@ export class CollaborationService {
 		}
 
 		this.push.send('workflowUsersChanged', usersByWorkflowId);
+	}
+
+	async sendWorkflowChangedMessage(workflowId: string, toUserId?: string) {
+		const workflowJson = this.state.workflowDraftsByWorkflowId[workflowId];
+		const message = { workflowId, workflowJson };
+
+		if (toUserId === undefined) {
+			this.push.send('workflowChanged', message);
+		} else {
+			const sessionId = this.sessionIdByUserId[toUserId];
+			this.push.send('workflowChanged', message, sessionId);
+		}
 	}
 }

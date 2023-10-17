@@ -519,7 +519,13 @@ export type IPushData =
 	| PushDataTestWebhook
 	| PushDataNodeDescriptionUpdated
 	| PushDataExecutionRecovered
-	| PushDataWorkflowUsersChanged;
+	| PushDataWorkflowUsersChanged
+	| PushDataWorkflowChanged;
+
+type PushDataWorkflowChanged = {
+	data: IWorkflowChanged;
+	type: 'workflowChanged';
+};
 
 type PushDataWorkflowUsersChanged = {
 	data: IWorkflowUsersChanged;
@@ -579,6 +585,11 @@ type PushDataNodeDescriptionUpdated = {
 export interface IWorkflowUserState {
 	user: User;
 	activeElementId: string | null;
+}
+
+export interface IWorkflowChanged {
+	workflowId: string;
+	workflowJson: unknown;
 }
 
 export interface IWorkflowUsersChanged {

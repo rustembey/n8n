@@ -8,7 +8,9 @@ function heartbeat(this: WebSocket) {
 }
 
 export class WebSocketPush extends AbstractPush<WebSocketConnection> {
-	constructor(private readonly onMessage: (userId: string, msg: unknown) => void) {
+	constructor(
+		private readonly onMessage: (sessionId: string, userId: string, msg: unknown) => void,
+	) {
 		super();
 
 		// Ping all connected clients every 60 seconds
@@ -31,7 +33,7 @@ export class WebSocketPush extends AbstractPush<WebSocketConnection> {
 			try {
 				const buffer = Array.isArray(data) ? Buffer.concat(data) : Buffer.from(data);
 
-				this.onMessage(connection.userId, JSON.parse(buffer.toString('utf8')));
+				this.onMessage(sessionId, connection.userId, JSON.parse(buffer.toString('utf8')));
 			} catch (error) {
 				console.error(error);
 			}
