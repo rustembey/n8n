@@ -53,6 +53,7 @@ export const pushConnection = defineComponent({
 			connectRetries: 0,
 			lostConnection: false,
 			outgoingQueue: [] as Array<any>,
+			isConnectionOpen: false,
 		};
 	},
 	computed: {
@@ -111,6 +112,7 @@ export const pushConnection = defineComponent({
 		},
 
 		onConnectionSuccess() {
+			this.isConnectionOpen = true;
 			this.connectRetries = 0;
 			this.lostConnection = false;
 			this.rootStore.pushConnectionActive = true;
@@ -146,6 +148,7 @@ export const pushConnection = defineComponent({
 				this.pushSource = null;
 			}
 
+			this.isConnectionOpen = false;
 			this.rootStore.pushConnectionActive = false;
 		},
 
@@ -194,7 +197,7 @@ export const pushConnection = defineComponent({
 		},
 
 		send(message: any) {
-			if (!this.rootStore.pushConnectionActive) {
+			if (!this.isConnectionOpen) {
 				this.outgoingQueue.push(message);
 				return;
 			}
