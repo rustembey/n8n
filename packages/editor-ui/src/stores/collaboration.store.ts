@@ -58,6 +58,9 @@ export const useCollaborationStore = defineStore('collaboration', () => {
 			// 	connectTwoNodes(c1.node, c1.index, c2.node, c2.index, c1.type as ConnectionTypes);
 			// });
 			// canvasStore.jsPlumbInstance?.setSuspendDrawing(false, true);
+			setTimeout(() => {
+				canvasStore.jsPlumbInstance?.repaintEverything();
+			}, 20);
 		}
 	};
 
