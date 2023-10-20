@@ -216,7 +216,6 @@ export const useCanvasStore = defineStore('canvas', () => {
 						jsPlumbInstanceRef.value?.clearDragSelection();
 						uiStore.resetSelectedNodes();
 					}
-
 					uiStore.addActiveAction('dragActive');
 					return true;
 				},

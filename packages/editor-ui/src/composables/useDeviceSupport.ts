@@ -28,6 +28,10 @@ export default function useDeviceSupportHelpers(): DeviceSupportHelpers {
 		return (e as KeyboardEvent).ctrlKey;
 	}
 
+	console.log('[DEVICE SUPPORT] isTouchDevice', isTouchDevice.value);
+	console.log('[DEVICE SUPPORT] isMacOs', isMacOs.value);
+	console.log('[DEVICE SUPPORT] controlKeyCode', controlKeyCode.value);
+
 	return {
 		isTouchDevice: isTouchDevice.value,
 		isMacOs: isMacOs.value,

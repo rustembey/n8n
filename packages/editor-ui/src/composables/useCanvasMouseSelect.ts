@@ -28,13 +28,13 @@ export default function useCanvasMouseSelect() {
 	function _showSelectBox(event: MouseEvent) {
 		const [x, y] = getMousePositionWithinNodeView(event);
 		selectBox.value = Object.assign(selectBox.value, { x, y });
-
 		_setSelectBoxStyle({
 			left: selectBox.value.x + 'px',
 			top: selectBox.value.y + 'px',
 			visibility: 'visible',
 		});
 		selectActive.value = true;
+		console.log('[SELECT MIXIN] _showSelectBox', x, y);
 	}
 
 	function _updateSelectBox(event: MouseEvent) {
@@ -49,6 +49,7 @@ export default function useCanvasMouseSelect() {
 	}
 
 	function _hideSelectBox() {
+		console.log('[SELECT MIXIN] _hideSelectBox');
 		selectBox.value.x = 0;
 		selectBox.value.y = 0;
 
@@ -115,7 +116,9 @@ export default function useCanvasMouseSelect() {
 	}
 
 	function _mouseMoveSelect(e: MouseEvent) {
+		console.log('[SELECT MIXIN] MOUSE MOVING', e);
 		if (e.buttons === 0) {
+			console.log('[SELECT MIXIN] _mouseMoveSelect: RETURN 1');
 			// Mouse button is not pressed anymore so stop selection mode
 			// Happens normally when mouse leave the view pressed and then
 			// comes back unpressed.
@@ -127,15 +130,20 @@ export default function useCanvasMouseSelect() {
 	}
 
 	function mouseUpMouseSelect(e: MouseEvent) {
+		console.log('[SELECT MIXIN] MOUSE UP', e);
 		if (selectActive.value === false) {
+			console.log('[SELECT MIXIN] mouseUpMouseSelect: IF 1');
 			if (isTouchDevice === true && e.target instanceof HTMLElement) {
+				console.log('[SELECT MIXIN] mouseUpMouseSelect: IF 2');
 				if (e.target && e.target.id.includes('node-view')) {
+					console.log('[SELECT MIXIN] mouseUpMouseSelect: IF 3');
 					// Deselect all nodes
 					deselectAllNodes();
 				}
 			}
 			// If it is not active return directly.
 			// Else normal node dragging will not work.
+			console.log('[SELECT MIXIN] mouseUpMouseSelect: RETURN 1');
 			return;
 		}
 		document.removeEventListener('mousemove', _mouseMoveSelect);
@@ -156,14 +164,18 @@ export default function useCanvasMouseSelect() {
 		_hideSelectBox();
 	}
 	function mouseDownMouseSelect(e: MouseEvent, moveButtonPressed: boolean) {
+		console.log('[SELECT MIXIN] MOUSE DOWN', e, moveButtonPressed);
+
 		if (isCtrlKeyPressed(e) === true || moveButtonPressed) {
 			// We only care about it when the ctrl key is not pressed at the same time.
 			// So we exit when it is pressed.
+			console.log('[SELECT MIXIN] mouseDownMouseSelect: RETURN 1');
 			return;
 		}
 
 		if (uiStore.isActionActive('dragActive')) {
 			// If a node does currently get dragged we do not activate the selection
+			console.log('[SELECT MIXIN] mouseDownMouseSelect: RETURN 2');
 			return;
 		}
 		_showSelectBox(e);
