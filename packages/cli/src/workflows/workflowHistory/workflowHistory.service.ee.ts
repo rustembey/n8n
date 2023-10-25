@@ -6,6 +6,7 @@ import { SharedWorkflowRepository } from '@/databases/repositories';
 import { WorkflowHistoryRepository } from '@db/repositories/workflowHistory.repository';
 import { Service } from 'typedi';
 import { isWorkflowHistoryEnabled } from './workflowHistoryHelper.ee';
+import { getLogger } from '@/Logger';
 
 export class SharedWorkflowNotFoundError extends Error {}
 export class HistoryVersionNotFoundError extends Error {}
@@ -64,15 +65,22 @@ export class WorkflowHistoryService {
 		return hist;
 	}
 
-	async saveVersion(user: User, workflow: WorkflowEntity) {
+	async saveVersion(user: User, workflow: WorkflowEntity, workflowId: string) {
 		if (isWorkflowHistoryEnabled()) {
-			await this.workflowHistoryRepository.insert({
-				authors: user.firstName + ' ' + user.lastName,
-				connections: workflow.connections,
-				nodes: workflow.nodes,
-				versionId: workflow.versionId,
-				workflowId: workflow.id,
-			});
+			try {
+				await this.workflowHistoryRepository.insert({
+					authors: user.firstName + ' ' + user.lastName,
+					connections: workflow.connections,
+					nodes: workflow.nodes,
+					versionId: workflow.versionId,
+					workflowId,
+				});
+			} catch (e) {
+				getLogger().error(
+					`Failed to save workflow history version for workflow ${workflowId}`,
+					e as Error,
+				);
+			}
 		}
 	}
 }

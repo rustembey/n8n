@@ -26,6 +26,7 @@ import { RoleService } from '@/services/role.service';
 import * as utils from '@/utils';
 import { listQueryMiddleware } from '@/middlewares';
 import { TagService } from '@/services/tag.service';
+import { WorkflowHistoryService } from './workflowHistory/workflowHistory.service.ee';
 
 export const workflowsController = express.Router();
 
@@ -98,6 +99,12 @@ workflowsController.post(
 			LoggerProxy.error('Failed to create workflow', { userId: req.user.id });
 			throw new ResponseHelper.InternalServerError('Failed to save workflow');
 		}
+
+		await Container.get(WorkflowHistoryService).saveVersion(
+			req.user,
+			savedWorkflow,
+			savedWorkflow.id,
+		);
 
 		if (tagIds && !config.getEnv('workflowTagsDisabled') && savedWorkflow.tags) {
 			savedWorkflow.tags = Container.get(TagService).sortByRequestOrder(savedWorkflow.tags, {
