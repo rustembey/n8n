@@ -165,7 +165,12 @@ export default function useCanvasMouseSelect() {
 	}
 	function mouseDownMouseSelect(e: MouseEvent, moveButtonPressed: boolean) {
 		console.log('[SELECT MIXIN] MOUSE DOWN', e, moveButtonPressed);
-
+		console.log(
+			'[SELECT MIXIN] mouseDownMouseSelect: isCtrlKeyPressed',
+			isCtrlKeyPressed(e),
+			'moveButtonPressed',
+			moveButtonPressed
+		);
 		if (isCtrlKeyPressed(e) === true || moveButtonPressed) {
 			// We only care about it when the ctrl key is not pressed at the same time.
 			// So we exit when it is pressed.
