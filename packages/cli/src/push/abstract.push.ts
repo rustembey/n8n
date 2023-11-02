@@ -1,8 +1,12 @@
 import { Service } from 'typedi';
+import { isProxy } from 'util/types';
 import { type Readable } from 'stream';
 import { JsonStreamStringify } from 'json-stream-stringify';
 import type { IPushDataType } from '@/Interfaces';
 import { Logger } from '@/Logger';
+
+const skipProxies = (key: string, value: unknown) =>
+	value && isProxy(value) ? JSON.stringify(value) : value;
 
 @Service()
 export abstract class AbstractPush<T> {
@@ -55,7 +59,7 @@ export abstract class AbstractPush<T> {
 
 	// Push messages need to be
 	private enqueue<D>(clients: T[], type: IPushDataType, data?: D) {
-		const stream = new JsonStreamStringify({ type, data }, undefined, undefined, true);
+		const stream = new JsonStreamStringify({ type, data }, skipProxies, undefined, true);
 		this.messageQueue.push([clients, stream]);
 		setImmediate(async () => this.processQueue());
 	}
