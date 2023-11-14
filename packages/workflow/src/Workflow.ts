@@ -42,6 +42,7 @@ import type {
 	IRunNodeResponse,
 	NodeParameterValueType,
 	ConnectionTypes,
+	CloseFunction,
 } from './Interfaces';
 import { Node } from './Interfaces';
 import type { IDeferredPromise } from './DeferredPromise';
@@ -1295,6 +1296,7 @@ export class Workflow {
 		}
 
 		if (nodeType.execute) {
+			const closeFunctions: CloseFunction[] = [];
 			const context = nodeExecuteFunctions.getExecuteFunctions(
 				this,
 				runExecutionData,
@@ -1305,11 +1307,21 @@ export class Workflow {
 				additionalData,
 				executionData,
 				mode,
+				closeFunctions,
 			);
 			const data =
 				nodeType instanceof Node
 					? await nodeType.execute(context)
 					: await nodeType.execute.call(context);
+
+			closeFunctions.forEach(async (closeFunction) => {
+				try {
+					await closeFunction();
+				} catch (error: unknown) {
+					console.log(`Problem closing node "${node.name}": ${error.message}`);
+				}
+			});
+
 			return { data };
 		} else if (nodeType.poll) {
 			if (mode === 'manual') {
