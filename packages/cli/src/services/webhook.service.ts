@@ -29,6 +29,10 @@ export class WebhookService {
 		private readonly nodeTypes: NodeTypes,
 	) {}
 
+	async findAll() {
+		return this.webhookRepository.find();
+	}
+
 	findWebhook(method: Method, path: string) {
 		const webhookGroup = this.getWebhookGroup(path);
 		return webhookGroup?.get(method);
