@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-
-import { Container, Service } from 'typedi';
+import { Service } from 'typedi';
 import type {
 	IDeferredPromise,
 	IExecuteResponsePromiseData,
@@ -28,7 +26,10 @@ export class ActiveExecutions {
 		[index: string]: IExecutingWorkflowData;
 	} = {};
 
-	constructor(private readonly logger: Logger) {}
+	constructor(
+		private readonly logger: Logger,
+		private readonly executionRepository: ExecutionRepository,
+	) {}
 
 	/**
 	 * Add a new active execution
@@ -60,9 +61,7 @@ export class ActiveExecutions {
 				fullExecutionData.workflowId = workflowId;
 			}
 
-			const executionResult =
-				await Container.get(ExecutionRepository).createNewExecution(fullExecutionData);
-			executionId = executionResult.id;
+			executionId = await this.executionRepository.createNewExecution(fullExecutionData);
 			if (executionId === undefined) {
 				throw new Error('There was an issue assigning an execution id to the execution');
 			}
@@ -77,7 +76,7 @@ export class ActiveExecutions {
 				status: executionStatus,
 			};
 
-			await Container.get(ExecutionRepository).updateExistingExecution(executionId, execution);
+			await this.executionRepository.updateExistingExecution(executionId, execution);
 		}
 
 		this.activeExecutions[executionId] = {
@@ -214,10 +213,10 @@ export class ActiveExecutions {
 			data = this.activeExecutions[id];
 			returnData.push({
 				id,
-				retryOf: data.executionData.retryOf as string | undefined,
+				retryOf: data.executionData.retryOf,
 				startedAt: data.startedAt,
 				mode: data.executionData.executionMode,
-				workflowId: data.executionData.workflowData.id! as string,
+				workflowId: data.executionData.workflowData.id!,
 				status: data.status,
 			});
 		}
