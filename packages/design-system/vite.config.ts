@@ -6,6 +6,7 @@ import { defineConfig as defineVitestConfig } from 'vitest/config';
 
 export const vitestConfig = defineVitestConfig({
 	test: {
+		silent: process.env.CI === 'true',
 		globals: true,
 		environment: 'jsdom',
 		setupFiles: ['./src/__tests__/setup.ts'],
