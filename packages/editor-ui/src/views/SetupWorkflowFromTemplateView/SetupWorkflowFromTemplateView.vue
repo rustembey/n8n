@@ -9,12 +9,10 @@ import SetupTemplateFormStep from './SetupTemplateFormStep.vue';
 import TemplatesView from '../TemplatesView.vue';
 import { VIEWS } from '@/constants';
 import { useExternalHooks } from '@/composables/useExternalHooks';
-import { useI18n } from '@/composables/useI18n';
 import { useTelemetry } from '@/composables/useTelemetry';
 
 // Store
 const setupTemplateStore = useSetupTemplateStore();
-const i18n = useI18n();
 const $telemetry = useTelemetry();
 const $externalHooks = useExternalHooks();
 
@@ -64,7 +62,7 @@ const onSkipSetup = async (event: MouseEvent) => {
 const skipIfTemplateHasNoCreds = async () => {
 	const isTemplateLoaded = !!setupTemplateStore.template;
 	if (!isTemplateLoaded) {
-		return;
+		return false;
 	}
 
 	if (setupTemplateStore.credentialUsages.length === 0) {
@@ -73,7 +71,10 @@ const skipIfTemplateHasNoCreds = async () => {
 			$telemetry,
 			$router,
 		});
+		return true;
 	}
+
+	return false;
 };
 
 //#endregion Methods
@@ -84,7 +85,12 @@ setupTemplateStore.setTemplateId(templateId.value);
 
 onMounted(async () => {
 	await setupTemplateStore.init();
-	await skipIfTemplateHasNoCreds();
+	const wasSkipped = await skipIfTemplateHasNoCreds();
+	if (!wasSkipped) {
+		$telemetry.track('User opened cred setup', undefined, {
+			withPostHog: true,
+		});
+	}
 });
 
 //#endregion Lifecycle hooks
@@ -132,7 +138,12 @@ onMounted(async () => {
 						size="large"
 						:label="$locale.baseText('templateSetup.continue.button')"
 						:disabled="setupTemplateStore.isSaving"
-						@click="setupTemplateStore.createWorkflow($router)"
+						@click="
+							setupTemplateStore.createWorkflow({
+								$router,
+								$telemetry,
+							})
+						"
 						data-test-id="continue-button"
 					/>
 					<div v-else>
